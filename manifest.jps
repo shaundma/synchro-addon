@@ -2,8 +2,8 @@
   "jpsType": "update",
   "jpsVersion": "1.8",
   "id": "synchro-addon",
-  "name": "Synchro Add-on v1.2.4",
-  "version": "1.2.4",
+  "name": "Synchro Add-on v1.2.5",
+  "version": "1.2.5",
   "logo": "images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
   "description": "Synchronize files and folders between nodes using rsync",
@@ -91,15 +91,51 @@
         "publicKey": "${response.out}"
       }
     },
-    "copyPublicKeyToRemote": {
-      "cmd [${targetNodes.nodeGroup}]": {
-        "commands": [
-          "ssh-keyscan -H ${settings.remoteIP} >> /root/.ssh/known_hosts 2>/dev/null",
-          "sshpass -p '${user.appPassword}' ssh-copy-id -i /root/.ssh/id_synchro.pub root@${settings.remoteIP} 2>/dev/null || echo '${globals.publicKey}' | ssh root@${settings.remoteIP} 'mkdir -p /root/.ssh && chmod 700 /root/.ssh && cat >> /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys && sort -u /root/.ssh/authorized_keys -o /root/.ssh/authorized_keys' || true"
-        ],
-        "user": "root"
+    "copyPublicKeyToRemote": [
+      {
+        "cmd [${targetNodes.nodeGroup}]": {
+          "commands": [
+            "ssh-keyscan -H ${settings.remoteIP} >> /root/.ssh/known_hosts 2>/dev/null || true"
+          ],
+          "user": "root"
+        }
+      },
+      {
+        "script": [
+          "var remoteEnv = '${settings.remoteEnv}';",
+          "var remoteIP = '${settings.remoteIP}';",
+          "var publicKey = '${globals.publicKey}';",
+          "",
+          "var resp = jelastic.env.control.GetEnvInfo(remoteEnv, session);",
+          "if (resp.result != 0) return resp;",
+          "",
+          "var nodes = resp.nodes || [];",
+          "var remoteNodeId = null;",
+          "",
+          "for (var i = 0; i < nodes.length; i++) {",
+          "  if (nodes[i].intIP == remoteIP || nodes[i].address == remoteIP) {",
+          "    remoteNodeId = nodes[i].id;",
+          "    break;",
+          "  }",
+          "}",
+          "",
+          "if (!remoteNodeId) {",
+          "  return { result: 1, error: 'Remote node not found with IP: ' + remoteIP };",
+          "}",
+          "",
+          "var cmd = 'mkdir -p /root/.ssh && chmod 700 /root/.ssh && echo \"' + publicKey.trim() + '\" >> /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys && sort -u /root/.ssh/authorized_keys -o /root/.ssh/authorized_keys';",
+          "",
+          "return jelastic.env.control.ExecCmdById(",
+          "  remoteEnv,",
+          "  session,",
+          "  remoteNodeId,",
+          "  toJSON([{ command: cmd }]),",
+          "  true,",
+          "  'root'",
+          ");"
+        ]
       }
-    },
+    ],
     "setupSyncScript": {
       "cmd [${targetNodes.nodeGroup}]": {
         "commands": [
@@ -115,13 +151,7 @@
     "setupCronJob": {
       "cmd [${targetNodes.nodeGroup}]": {
         "commands": [
-          "CRON_INTERVAL='${settings.syncInterval}'",
-          "CRON_LINE=\"*/$CRON_INTERVAL * * * * /usr/local/bin/synchro-sync.sh\"",
-          "crontab -l 2>/dev/null | grep -v 'synchro-sync.sh' > /tmp/crontab.tmp || true",
-          "echo \"$CRON_LINE\" >> /tmp/crontab.tmp",
-          "crontab /tmp/crontab.tmp",
-          "rm -f /tmp/crontab.tmp",
-          "echo \"Cron job installed: sync every $CRON_INTERVAL minutes\""
+          "(crontab -l 2>/dev/null | grep -v 'synchro-sync.sh'; echo '*/${settings.syncInterval} * * * * /usr/local/bin/synchro-sync.sh') | crontab - && echo 'Cron job installed: sync every ${settings.syncInterval} minutes'"
         ],
         "user": "root"
       }
