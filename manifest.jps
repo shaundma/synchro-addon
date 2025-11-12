@@ -2,8 +2,8 @@
   "jpsType": "update",
   "jpsVersion": "1.8",
   "id": "synchro-addon",
-  "name": "Synchro Add-on v1.2.0",
-  "version": "1.2.0",
+  "name": "Synchro Add-on v1.2.1",
+  "version": "1.2.1",
   "logo": "images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
   "description": "Synchronize files and folders between nodes using rsync",
@@ -78,9 +78,7 @@
       "cmd [${targetNodes.nodeGroup}]": [
         "mkdir -p /root/.ssh",
         "chmod 700 /root/.ssh",
-        "if [ ! -f /root/.ssh/id_synchro ]; then",
-        "  ssh-keygen -t rsa -b 4096 -f /root/.ssh/id_synchro -N '' -C 'synchro-addon'",
-        "fi",
+        "[ ! -f /root/.ssh/id_synchro ] && ssh-keygen -t rsa -b 4096 -f /root/.ssh/id_synchro -N '' -C 'synchro-addon' || true",
         "cat /root/.ssh/id_synchro.pub"
       ],
       "setGlobals": {
