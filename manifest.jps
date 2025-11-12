@@ -2,7 +2,7 @@ type: update
 logo: images/icon.png
 homepage: https://github.com/shaundma/synchro-addon
 
-version: '1.0.3'
+version: '1.0.4'
 baseUrl: https://raw.githubusercontent.com/shaundma/synchro-addon/master/
 
 targetEditions: any
@@ -36,9 +36,61 @@ name: Synchro Add-on
 
 id: synchro-addon
 
+onBeforeInit: |
+  var envs = jelastic.env.control.GetEnvs();
+  var envList = {};
+  if (envs.result == 0) {
+    for (var i = 0; i < envs.infos.length; i++) {
+      envList[envs.infos[i].env.envName] = envs.infos[i].env.envName;
+    }
+  }
+
+  return {
+    result: 0,
+    settings: {
+      fields: [{
+        type: "string",
+        name: "syncFolder",
+        caption: "Folder to Sync",
+        required: true,
+        default: "/var/www/webroot/ROOT",
+        placeholder: "/path/to/folder"
+      }, {
+        type: "radio-fieldset",
+        name: "syncDirection",
+        caption: "Sync Direction",
+        default: "from",
+        values: {
+          from: "FROM target TO remote",
+          to: "TO target FROM remote"
+        }
+      }, {
+        type: "spinner",
+        name: "syncInterval",
+        caption: "Sync Interval (minutes)",
+        min: 1,
+        max: 2880,
+        default: 5,
+        required: true
+      }, {
+        type: "list",
+        name: "remoteEnv",
+        caption: "Remote Environment",
+        required: true,
+        values: envList
+      }, {
+        type: "string",
+        name: "remoteNodeIP",
+        caption: "Remote Node IP",
+        required: true,
+        placeholder: "Enter IP address of remote node"
+      }]
+    }
+  };
+
 onInstall: installRsyncDaemon
 
-settings:
+settings_disabled:
   fields:
   - type: string
     name: syncFolder
