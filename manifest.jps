@@ -2,8 +2,8 @@
   "jpsType": "update",
   "jpsVersion": "1.8",
   "id": "synchro-addon",
-  "name": "Synchro Add-on v1.2.1",
-  "version": "1.2.1",
+  "name": "Synchro Add-on v1.2.2",
+  "version": "1.2.2",
   "logo": "images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
   "description": "Synchronize files and folders between nodes using rsync",
@@ -70,89 +70,116 @@
   ],
   "actions": {
     "installDependencies": {
-      "cmd [${targetNodes.nodeGroup}]": [
-        "command -v rsync >/dev/null 2>&1 || yum install -y rsync || apt-get install -y rsync"
-      ]
+      "cmd [${targetNodes.nodeGroup}]": {
+        "commands": [
+          "command -v rsync >/dev/null 2>&1 || yum install -y rsync || apt-get install -y rsync"
+        ],
+        "user": "root"
+      }
     },
     "setupSSHKey": {
-      "cmd [${targetNodes.nodeGroup}]": [
-        "mkdir -p /root/.ssh",
-        "chmod 700 /root/.ssh",
-        "[ ! -f /root/.ssh/id_synchro ] && ssh-keygen -t rsa -b 4096 -f /root/.ssh/id_synchro -N '' -C 'synchro-addon' || true",
-        "cat /root/.ssh/id_synchro.pub"
-      ],
+      "cmd [${targetNodes.nodeGroup}]": {
+        "commands": [
+          "mkdir -p /root/.ssh",
+          "chmod 700 /root/.ssh",
+          "[ ! -f /root/.ssh/id_synchro ] && ssh-keygen -t rsa -b 4096 -f /root/.ssh/id_synchro -N '' -C 'synchro-addon' || true",
+          "cat /root/.ssh/id_synchro.pub"
+        ],
+        "user": "root"
+      },
       "setGlobals": {
         "publicKey": "${response.out}"
       }
     },
     "copyPublicKeyToRemote": {
-      "cmd [${targetNodes.nodeGroup}]": [
-        "ssh-keyscan -H ${settings.remoteIP} >> /root/.ssh/known_hosts 2>/dev/null",
-        "sshpass -p '${user.appPassword}' ssh-copy-id -i /root/.ssh/id_synchro.pub root@${settings.remoteIP} 2>/dev/null || echo '${globals.publicKey}' | ssh root@${settings.remoteIP} 'mkdir -p /root/.ssh && chmod 700 /root/.ssh && cat >> /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys && sort -u /root/.ssh/authorized_keys -o /root/.ssh/authorized_keys' || true"
-      ]
+      "cmd [${targetNodes.nodeGroup}]": {
+        "commands": [
+          "ssh-keyscan -H ${settings.remoteIP} >> /root/.ssh/known_hosts 2>/dev/null",
+          "sshpass -p '${user.appPassword}' ssh-copy-id -i /root/.ssh/id_synchro.pub root@${settings.remoteIP} 2>/dev/null || echo '${globals.publicKey}' | ssh root@${settings.remoteIP} 'mkdir -p /root/.ssh && chmod 700 /root/.ssh && cat >> /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys && sort -u /root/.ssh/authorized_keys -o /root/.ssh/authorized_keys' || true"
+        ],
+        "user": "root"
+      }
     },
     "setupSyncScript": {
-      "cmd [${targetNodes.nodeGroup}]": [
-        "cat > /usr/local/bin/synchro-sync.sh << 'SYNCSCRIPT'",
-        "#!/bin/bash",
-        "SYNC_FOLDER='${settings.syncFolder}'",
-        "SYNC_DIRECTION='${settings.syncDirection}'",
-        "REMOTE_IP='${settings.remoteIP}'",
-        "SSH_KEY='/root/.ssh/id_synchro'",
-        "LOG_FILE='/var/log/synchro-addon.log'",
-        "mkdir -p $(dirname $LOG_FILE)",
-        "log() {",
-        "  echo \"[$(date '+%Y-%m-%d %H:%M:%S')] $1\" >> $LOG_FILE",
-        "}",
-        "log \"Starting sync: Direction=$SYNC_DIRECTION, Remote=$REMOTE_IP\"",
-        "if [ \"$SYNC_DIRECTION\" = \"from\" ]; then",
-        "  rsync -avz --delete -e \"ssh -i $SSH_KEY -o StrictHostKeyChecking=no\" \"$SYNC_FOLDER/\" \"root@$REMOTE_IP:$SYNC_FOLDER/\" >> $LOG_FILE 2>&1",
-        "else",
-        "  rsync -avz --delete -e \"ssh -i $SSH_KEY -o StrictHostKeyChecking=no\" \"root@$REMOTE_IP:$SYNC_FOLDER/\" \"$SYNC_FOLDER/\" >> $LOG_FILE 2>&1",
-        "fi",
-        "SYNC_RESULT=$?",
-        "if [ $SYNC_RESULT -eq 0 ]; then",
-        "  log \"Sync completed successfully\"",
-        "else",
-        "  log \"Sync failed with exit code $SYNC_RESULT\"",
-        "fi",
-        "exit $SYNC_RESULT",
-        "SYNCSCRIPT",
-        "chmod +x /usr/local/bin/synchro-sync.sh"
-      ]
+      "cmd [${targetNodes.nodeGroup}]": {
+        "commands": [
+          "cat > /usr/local/bin/synchro-sync.sh << 'SYNCSCRIPT'",
+          "#!/bin/bash",
+          "SYNC_FOLDER='${settings.syncFolder}'",
+          "SYNC_DIRECTION='${settings.syncDirection}'",
+          "REMOTE_IP='${settings.remoteIP}'",
+          "SSH_KEY='/root/.ssh/id_synchro'",
+          "LOG_FILE='/var/log/synchro-addon.log'",
+          "mkdir -p $(dirname $LOG_FILE)",
+          "log() {",
+          "  echo \"[$(date '+%Y-%m-%d %H:%M:%S')] $1\" >> $LOG_FILE",
+          "}",
+          "log \"Starting sync: Direction=$SYNC_DIRECTION, Remote=$REMOTE_IP\"",
+          "if [ \"$SYNC_DIRECTION\" = \"from\" ]; then",
+          "  rsync -avz --delete -e \"ssh -i $SSH_KEY -o StrictHostKeyChecking=no\" \"$SYNC_FOLDER/\" \"root@$REMOTE_IP:$SYNC_FOLDER/\" >> $LOG_FILE 2>&1",
+          "else",
+          "  rsync -avz --delete -e \"ssh -i $SSH_KEY -o StrictHostKeyChecking=no\" \"root@$REMOTE_IP:$SYNC_FOLDER/\" \"$SYNC_FOLDER/\" >> $LOG_FILE 2>&1",
+          "fi",
+          "SYNC_RESULT=$?",
+          "if [ $SYNC_RESULT -eq 0 ]; then",
+          "  log \"Sync completed successfully\"",
+          "else",
+          "  log \"Sync failed with exit code $SYNC_RESULT\"",
+          "fi",
+          "exit $SYNC_RESULT",
+          "SYNCSCRIPT",
+          "chmod +x /usr/local/bin/synchro-sync.sh"
+        ],
+        "user": "root"
+      }
     },
     "setupCronJob": {
-      "cmd [${targetNodes.nodeGroup}]": [
-        "CRON_INTERVAL='${settings.syncInterval}'",
-        "CRON_LINE=\"*/$CRON_INTERVAL * * * * /usr/local/bin/synchro-sync.sh\"",
-        "crontab -l 2>/dev/null | grep -v 'synchro-sync.sh' > /tmp/crontab.tmp || true",
-        "echo \"$CRON_LINE\" >> /tmp/crontab.tmp",
-        "crontab /tmp/crontab.tmp",
-        "rm -f /tmp/crontab.tmp",
-        "echo \"Cron job installed: sync every $CRON_INTERVAL minutes\""
-      ]
+      "cmd [${targetNodes.nodeGroup}]": {
+        "commands": [
+          "CRON_INTERVAL='${settings.syncInterval}'",
+          "CRON_LINE=\"*/$CRON_INTERVAL * * * * /usr/local/bin/synchro-sync.sh\"",
+          "crontab -l 2>/dev/null | grep -v 'synchro-sync.sh' > /tmp/crontab.tmp || true",
+          "echo \"$CRON_LINE\" >> /tmp/crontab.tmp",
+          "crontab /tmp/crontab.tmp",
+          "rm -f /tmp/crontab.tmp",
+          "echo \"Cron job installed: sync every $CRON_INTERVAL minutes\""
+        ],
+        "user": "root"
+      }
     },
     "testSync": {
-      "cmd [${targetNodes.nodeGroup}]": [
-        "/usr/local/bin/synchro-sync.sh || echo 'Initial sync attempted. Check /var/log/synchro-addon.log for details.'"
-      ]
+      "cmd [${targetNodes.nodeGroup}]": {
+        "commands": [
+          "/usr/local/bin/synchro-sync.sh || echo 'Initial sync attempted. Check /var/log/synchro-addon.log for details.'"
+        ],
+        "user": "root"
+      }
     },
     "removePublicKeyFromRemote": {
-      "cmd [${targetNodes.nodeGroup}]": [
-        "ssh -i /root/.ssh/id_synchro -o StrictHostKeyChecking=no root@${settings.remoteIP} \"sed -i '/synchro-addon/d' /root/.ssh/authorized_keys\" 2>/dev/null || true"
-      ]
+      "cmd [${targetNodes.nodeGroup}]": {
+        "commands": [
+          "ssh -i /root/.ssh/id_synchro -o StrictHostKeyChecking=no root@${settings.remoteIP} \"sed -i '/synchro-addon/d' /root/.ssh/authorized_keys\" 2>/dev/null || true"
+        ],
+        "user": "root"
+      }
     },
     "removeCronJob": {
-      "cmd [${targetNodes.nodeGroup}]": [
-        "crontab -l 2>/dev/null | grep -v 'synchro-sync.sh' | crontab - || true",
-        "echo 'Cron job removed'"
-      ]
+      "cmd [${targetNodes.nodeGroup}]": {
+        "commands": [
+          "crontab -l 2>/dev/null | grep -v 'synchro-sync.sh' | crontab - || true",
+          "echo 'Cron job removed'"
+        ],
+        "user": "root"
+      }
     },
     "cleanupScripts": {
-      "cmd [${targetNodes.nodeGroup}]": [
-        "rm -f /usr/local/bin/synchro-sync.sh",
-        "echo 'Cleanup completed. SSH key kept at /root/.ssh/id_synchro for reuse.'"
-      ]
+      "cmd [${targetNodes.nodeGroup}]": {
+        "commands": [
+          "rm -f /usr/local/bin/synchro-sync.sh",
+          "echo 'Cleanup completed. SSH key kept at /root/.ssh/id_synchro for reuse.'"
+        ],
+        "user": "root"
+      }
     }
   },
   "success": "Synchro Add-on installed successfully!<br><br>Configuration:<br>- Installed on: ${targetNodes.nodeGroup} nodes<br>- Folder: ${settings.syncFolder}<br>- Direction: ${settings.syncDirection} (${settings.syncDirection == 'from' ? 'FROM target TO remote' : 'TO target FROM remote'})<br>- Interval: Every ${settings.syncInterval} minutes<br>- Remote: ${settings.remoteIP} in ${settings.remoteEnv}<br><br>Check sync log: /var/log/synchro-addon.log"
