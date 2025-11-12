@@ -3,12 +3,11 @@
   "jpsVersion": "1.8",
   "id": "synchro-addon",
   "name": "Synchro Add-on",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "logo": "images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
-  "description": "Synchronize files and folders between nodes using rsync. Select target and remote environments/nodes, configure sync direction and interval.",
+  "description": "Synchronize files and folders between nodes using rsync",
   "baseUrl": "https://raw.githubusercontent.com/shaundma/synchro-addon/master/",
-  "targetEditions": "any",
   "targetNodes": {
     "nodeType": ["storage", "apache", "apache2", "nodejs", "apache-ruby", "apache-python", "nginxruby", "nginxphp", "nginxphp-dockerized", "tomcat6", "tomcat7", "tomcat8", "tomcat85", "tomcat9", "tomcat", "tomee", "tomee-dockerized", "litespeedphp", "llsmp", "lemp", "jetty"]
   },
@@ -56,35 +55,8 @@
       }
     ]
   },
-  "onInstall": "installRsyncDaemon",
-  "onAfterCloneNodes": "installRsyncDaemon",
-  "onAfterDeploy": "installRsyncDaemon",
-  "onBeforeDeploy": {
-    "cmd [${targetNodes.nodeGroup}]": [
-      "killall rsync lsyncd 2>&1"
-    ]
+  "onInstall": {
+    "log": "Synchro Add-on settings: Folder=${settings.syncFolder}, Direction=${settings.syncDirection}, Interval=${settings.syncInterval}, Remote=${settings.remoteEnv}/${settings.remoteNodeIP}"
   },
-  "onAfterRemoveNode": "installRsyncDaemon",
-  "actions": {
-    "removeLsyncd": [
-      {
-        "cmd [${targetNodes.nodeGroup}]": "killall rsync lsyncd 2>&1\n[ \"${targetNodes.nodeGroup}\" == \"storage\" ] && lsyndPath=\"/data\" || lsyndPath=\"/var/www/webroot\"\nrm -rf ${lsyndPath}/lsyncd* 2>&1\ncrontab -l | sed \"/lsyncd/d\" | crontab -"
-      },
-      {
-        "script": "${baseUrl}scripts/firewallRules.js",
-        "param": "uninstall"
-      }
-    ],
-    "installRsyncDaemon": [
-      {
-        "script": "scripts/firewallRules.js",
-        "param": "install"
-      },
-      {
-        "script": "scripts/installRsyncDaemon.js"
-      }
-    ]
-  },
-  "onUninstall": "removeLsyncd",
-  "success": "Synchro Add-on installed successfully!<br><br>Configuration:<br>- Folder: ${settings.syncFolder}<br>- Direction: ${settings.syncDirection}<br>- Interval: Every ${settings.syncInterval} minutes<br>- Remote: ${settings.remoteNodeIP} in ${settings.remoteEnv}"
+  "success": "Synchro Add-on form test successful!<br><br>Configuration captured:<br>- Folder: ${settings.syncFolder}<br>- Direction: ${settings.syncDirection}<br>- Interval: Every ${settings.syncInterval} minutes<br>- Remote: ${settings.remoteNodeIP} in ${settings.remoteEnv}<br><br>This is a test version - no sync configured yet."
 }
