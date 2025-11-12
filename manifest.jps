@@ -3,7 +3,7 @@
   "jpsVersion": "1.8",
   "id": "synchro-addon",
   "name": "Synchro Add-on",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "Synchronize files and folders between nodes using rsync",
   "logo": "https://raw.githubusercontent.com/shaundma/synchro-addon/master/images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
@@ -14,6 +14,40 @@
 
   "settings": {
     "fields": [
+      {
+        "type": "envlist",
+        "name": "targetEnv",
+        "caption": "Target Environment",
+        "required": true
+      },
+      {
+        "type": "list",
+        "name": "targetNode",
+        "caption": "Target Node",
+        "required": true,
+        "dependsOn": {
+          "targetEnv": {
+            "script": [
+              "var resp = jelastic.env.control.GetEnvInfo('${this.targetEnv}', session);",
+              "if (resp.result != 0) return resp;",
+              "",
+              "var nodes = resp.nodes || [];",
+              "var values = {};",
+              "",
+              "for (var i = 0; i < nodes.length; i++) {",
+              "  var node = nodes[i];",
+              "  var ip = node.intIP || node.address || 'unknown';",
+              "  var name = node.name || node.id || 'node';",
+              "  var type = node.nodeType || 'unknown';",
+              "  var label = name + ' [' + type + '] - ' + ip;",
+              "  values[ip] = label;",
+              "}",
+              "",
+              "return { result: 0, values: values };"
+            ]
+          }
+        }
+      },
       {
         "type": "string",
         "name": "syncFolder",
@@ -28,18 +62,8 @@
         "caption": "Sync Direction",
         "default": "from",
         "values": {
-          "from": "Sync FROM remote TO target",
-          "to": "Sync TO remote FROM target"
-        }
-      },
-      {
-        "type": "radio-fieldset",
-        "name": "syncMethod",
-        "caption": "Sync Method",
-        "default": "ip",
-        "values": {
-          "ip": "By IP Address",
-          "nodename": "By Node Name"
+          "from": "FROM target TO remote",
+          "to": "TO target FROM remote"
         }
       },
       {
@@ -53,19 +77,19 @@
       },
       {
         "type": "envlist",
-        "name": "targetEnv",
+        "name": "remoteEnv",
         "caption": "Remote Environment",
         "required": true
       },
       {
         "type": "list",
-        "name": "targetNode",
+        "name": "remoteNode",
         "caption": "Remote Node",
         "required": true,
         "dependsOn": {
-          "targetEnv": {
+          "remoteEnv": {
             "script": [
-              "var resp = jelastic.env.control.GetEnvInfo('${this.targetEnv}', session);",
+              "var resp = jelastic.env.control.GetEnvInfo('${this.remoteEnv}', session);",
               "if (resp.result != 0) return resp;",
               "",
               "var nodes = resp.nodes || [];",
@@ -73,7 +97,7 @@
               "",
               "for (var i = 0; i < nodes.length; i++) {",
               "  var node = nodes[i];",
-              "  var ip = node.intIP || node.address || node.extIPs || 'unknown';",
+              "  var ip = node.intIP || node.address || 'unknown';",
               "  var name = node.name || node.id || 'node';",
               "  var type = node.nodeType || 'unknown';",
               "  var label = name + ' [' + type + '] - ' + ip;",
@@ -163,31 +187,31 @@
 
     "copyPublicKeyToRemote": {
       "script": [
-        "var targetEnv = '${settings.targetEnv}';",
-        "var targetNode = '${settings.targetNode}';",
+        "var remoteEnv = '${settings.remoteEnv}';",
+        "var remoteNode = '${settings.remoteNode}';",
         "var publicKey = '${globals.publicKey}';",
         "",
-        "var resp = jelastic.env.control.GetEnvInfo(targetEnv, session);",
+        "var resp = jelastic.env.control.GetEnvInfo(remoteEnv, session);",
         "if (resp.result != 0) return resp;",
         "",
         "var nodes = resp.nodes;",
-        "var targetNodeId = null;",
+        "var remoteNodeId = null;",
         "",
         "for (var i = 0; i < nodes.length; i++) {",
-        "  if (nodes[i].id == targetNode || nodes[i].address == targetNode) {",
-        "    targetNodeId = nodes[i].id;",
+        "  if (nodes[i].intIP == remoteNode || nodes[i].address == remoteNode || nodes[i].id == remoteNode) {",
+        "    remoteNodeId = nodes[i].id;",
         "    break;",
         "  }",
         "}",
         "",
-        "if (!targetNodeId) {",
-        "  return { result: 1, error: 'Target node not found' };",
+        "if (!remoteNodeId) {",
+        "  return { result: 1, error: 'Remote node not found' };",
         "}",
         "",
         "return jelastic.env.control.ExecCmdById(",
-        "  targetEnv,",
+        "  remoteEnv,",
         "  session,",
-        "  targetNodeId,",
+        "  remoteNodeId,",
         "  toJSON([{",
         "    'command': 'mkdir -p /root/.ssh && chmod 700 /root/.ssh && echo \"' + publicKey.trim() + '\" >> /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys && sort -u /root/.ssh/authorized_keys -o /root/.ssh/authorized_keys'",
         "  }])",
@@ -203,9 +227,8 @@
         "# Synchro Add-on Sync Script",
         "SYNC_FOLDER='${settings.syncFolder}'",
         "SYNC_DIRECTION='${settings.syncDirection}'",
-        "SYNC_METHOD='${settings.syncMethod}'",
-        "TARGET_ENV='${settings.targetEnv}'",
-        "TARGET_NODE='${settings.targetNode}'",
+        "REMOTE_ENV='${settings.remoteEnv}'",
+        "REMOTE_NODE='${settings.remoteNode}'",
         "RSYNC_OPTIONS='-avz --delete'",
         "SSH_KEY='/root/.ssh/id_synchro-add-on'",
         "LOG_FILE='/var/log/synchro-addon.log'",
@@ -218,29 +241,21 @@
         "  echo \"[$(date '+%Y-%m-%d %H:%M:%S')] $1\" >> $LOG_FILE",
         "}",
         "",
-        "# Get target address based on method",
-        "if [ \"$SYNC_METHOD\" = \"ip\" ]; then",
-        "  TARGET_ADDRESS=\"$TARGET_NODE\"",
-        "else",
-        "  # Resolve node name to IP if needed",
-        "  TARGET_ADDRESS=\"$TARGET_NODE\"",
-        "fi",
-        "",
-        "log \"Starting sync: Direction=$SYNC_DIRECTION, Target=$TARGET_ADDRESS\"",
+        "log \"Starting sync: Direction=$SYNC_DIRECTION, Remote=$REMOTE_NODE\"",
         "",
         "# Perform sync based on direction",
         "if [ \"$SYNC_DIRECTION\" = \"from\" ]; then",
-        "  # Sync FROM remote TO local",
-        "  rsync $RSYNC_OPTIONS \\",
-        "    -e \"ssh -i $SSH_KEY -o StrictHostKeyChecking=no\" \\",
-        "    root@$TARGET_ADDRESS:$SYNC_FOLDER/ \\",
-        "    $SYNC_FOLDER/ >> $LOG_FILE 2>&1",
-        "else",
-        "  # Sync FROM local TO remote",
+        "  # Sync FROM target TO remote",
         "  rsync $RSYNC_OPTIONS \\",
         "    -e \"ssh -i $SSH_KEY -o StrictHostKeyChecking=no\" \\",
         "    $SYNC_FOLDER/ \\",
-        "    root@$TARGET_ADDRESS:$SYNC_FOLDER/ >> $LOG_FILE 2>&1",
+        "    root@$REMOTE_NODE:$SYNC_FOLDER/ >> $LOG_FILE 2>&1",
+        "else",
+        "  # Sync TO target FROM remote",
+        "  rsync $RSYNC_OPTIONS \\",
+        "    -e \"ssh -i $SSH_KEY -o StrictHostKeyChecking=no\" \\",
+        "    root@$REMOTE_NODE:$SYNC_FOLDER/ \\",
+        "    $SYNC_FOLDER/ >> $LOG_FILE 2>&1",
         "fi",
         "",
         "SYNC_RESULT=$?",
@@ -278,30 +293,30 @@
 
     "removePublicKeyFromRemote": {
       "script": [
-        "var targetEnv = '${settings.targetEnv}';",
-        "var targetNode = '${settings.targetNode}';",
+        "var remoteEnv = '${settings.remoteEnv}';",
+        "var remoteNode = '${settings.remoteNode}';",
         "",
-        "var resp = jelastic.env.control.GetEnvInfo(targetEnv, session);",
+        "var resp = jelastic.env.control.GetEnvInfo(remoteEnv, session);",
         "if (resp.result != 0) return resp;",
         "",
         "var nodes = resp.nodes;",
-        "var targetNodeId = null;",
+        "var remoteNodeId = null;",
         "",
         "for (var i = 0; i < nodes.length; i++) {",
-        "  if (nodes[i].id == targetNode || nodes[i].address == targetNode) {",
-        "    targetNodeId = nodes[i].id;",
+        "  if (nodes[i].intIP == remoteNode || nodes[i].address == remoteNode || nodes[i].id == remoteNode) {",
+        "    remoteNodeId = nodes[i].id;",
         "    break;",
         "  }",
         "}",
         "",
-        "if (!targetNodeId) {",
+        "if (!remoteNodeId) {",
         "  return { result: 0 };",
         "}",
         "",
         "return jelastic.env.control.ExecCmdById(",
-        "  targetEnv,",
+        "  remoteEnv,",
         "  session,",
-        "  targetNodeId,",
+        "  remoteNodeId,",
         "  toJSON([{",
         "    'command': 'sed -i \"/synchro-add-on/d\" /root/.ssh/authorized_keys 2>/dev/null || true'",
         "  }])",
@@ -325,6 +340,6 @@
   },
 
   "success": {
-    "text": "Synchro Add-on installed successfully!<br><br>Sync Settings:<br>- Folder: ${settings.syncFolder}<br>- Direction: ${settings.syncDirection}<br>- Interval: Every ${settings.syncInterval} minutes<br>- Target: ${settings.targetNode} in ${settings.targetEnv}<br><br>Check sync log: /var/log/synchro-addon.log"
+    "text": "Synchro Add-on installed successfully!<br><br>Sync Settings:<br>- Installed on: ${settings.targetNode} in ${settings.targetEnv}<br>- Folder: ${settings.syncFolder}<br>- Direction: ${settings.syncDirection}<br>- Interval: Every ${settings.syncInterval} minutes<br>- Remote: ${settings.remoteNode} in ${settings.remoteEnv}<br><br>Check sync log: /var/log/synchro-addon.log"
   }
 }

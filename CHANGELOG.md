@@ -5,6 +5,22 @@ All notable changes to the Synchro Add-on will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-11-12
+
+### Changed - BREAKING
+- **Complete workflow restructure**: Now select TARGET (where to install) first, then REMOTE (what to sync with)
+- New field order: Target Environment → Target Node → Folder → Direction → Interval → Remote Environment → Remote Node
+- Sync direction labels updated: "FROM target TO remote" and "TO target FROM remote"
+- Removed "Sync Method" field (By IP / By Node Name) - now always uses IP
+- Both Target Node and Remote Node dropdowns show IP addresses
+- Variable names changed: targetEnv/targetNode now mean installation target, remoteEnv/remoteNode for sync partner
+
+### Technical
+- Updated all scripts to use remoteEnv/remoteNode for the remote sync partner
+- Updated SSH key distribution to remote node
+- Updated rsync script with correct source/destination based on new naming
+- Node matching now includes intIP for better reliability
+
 ## [1.2.0] - 2025-11-12
 
 ### Changed
