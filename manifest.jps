@@ -1,0 +1,305 @@
+{
+  "jpsType": "update",
+  "jpsVersion": "1.8",
+  "id": "synchro-addon",
+  "name": "Synchro Add-on",
+  "version": "1.0.0",
+  "description": "Synchronize files and folders between nodes using rsync",
+  "logo": "https://raw.githubusercontent.com/shaundma/synchro-addon/master/images/icon.png",
+  "homepage": "https://github.com/shaundma/synchro-addon",
+  "targetNodes": {
+    "nodeType": "*"
+  },
+  "baseUrl": "https://raw.githubusercontent.com/shaundma/synchro-addon/master",
+
+  "settings": {
+    "fields": [
+      {
+        "type": "string",
+        "name": "syncFolder",
+        "caption": "Folder to Sync",
+        "required": true,
+        "default": "/var/www/webroot/ROOT",
+        "placeholder": "/path/to/folder"
+      },
+      {
+        "type": "radio-fieldset",
+        "name": "syncDirection",
+        "caption": "Sync Direction",
+        "default": "from",
+        "values": {
+          "from": "Sync FROM remote node TO this node",
+          "to": "Sync FROM this node TO remote node"
+        }
+      },
+      {
+        "type": "radio-fieldset",
+        "name": "syncMethod",
+        "caption": "Sync Method",
+        "default": "ip",
+        "values": {
+          "ip": "By IP Address",
+          "nodename": "By Node Name"
+        }
+      },
+      {
+        "type": "envlist",
+        "name": "targetEnv",
+        "caption": "Target Environment",
+        "required": true
+      },
+      {
+        "type": "list",
+        "name": "targetNode",
+        "caption": "Target Node",
+        "required": true,
+        "dependsOn": {
+          "targetEnv": {
+            "api": "environment.control.GetEnvInfo",
+            "params": {
+              "envName": "${this.targetEnv}"
+            }
+          }
+        },
+        "values": []
+      },
+      {
+        "type": "spinner",
+        "name": "syncInterval",
+        "caption": "Sync Interval (minutes)",
+        "min": 1,
+        "max": 2880,
+        "default": 5,
+        "required": true
+      },
+      {
+        "type": "string",
+        "name": "rsyncOptions",
+        "caption": "Rsync Options",
+        "default": "-avz --delete",
+        "placeholder": "-avz --delete"
+      }
+    ]
+  },
+
+  "onInstall": [
+    {
+      "installDependencies": {}
+    },
+    {
+      "setupSSHKey": {}
+    },
+    {
+      "copyPublicKeyToRemote": {}
+    },
+    {
+      "setupSyncScript": {}
+    },
+    {
+      "setupCronJob": {}
+    },
+    {
+      "testSync": {}
+    }
+  ],
+
+  "onUninstall": [
+    {
+      "removePublicKeyFromRemote": {}
+    },
+    {
+      "removeCronJob": {}
+    },
+    {
+      "cleanupScripts": {}
+    }
+  ],
+
+  "actions": {
+    "installDependencies": {
+      "cmd [${targetNodes.nodeGroup}]": [
+        "command -v rsync >/dev/null 2>&1 || yum install -y rsync || apt-get install -y rsync"
+      ]
+    },
+
+    "setupSSHKey": {
+      "cmd [${targetNodes.nodeGroup}]": [
+        "mkdir -p /root/.ssh",
+        "chmod 700 /root/.ssh",
+        "if [ ! -f /root/.ssh/id_synchro-add-on ]; then",
+        "  ssh-keygen -t rsa -b 4096 -f /root/.ssh/id_synchro-add-on -N '' -C 'synchro-add-on'",
+        "fi",
+        "cat /root/.ssh/id_synchro-add-on.pub"
+      ],
+      "setGlobals": {
+        "publicKey": "${response.out}"
+      }
+    },
+
+    "copyPublicKeyToRemote": {
+      "script": [
+        "var targetEnv = '${settings.targetEnv}';",
+        "var targetNode = '${settings.targetNode}';",
+        "var publicKey = '${globals.publicKey}';",
+        "",
+        "var resp = jelastic.env.control.GetEnvInfo(targetEnv, session);",
+        "if (resp.result != 0) return resp;",
+        "",
+        "var nodes = resp.nodes;",
+        "var targetNodeId = null;",
+        "",
+        "for (var i = 0; i < nodes.length; i++) {",
+        "  if (nodes[i].id == targetNode || nodes[i].address == targetNode) {",
+        "    targetNodeId = nodes[i].id;",
+        "    break;",
+        "  }",
+        "}",
+        "",
+        "if (!targetNodeId) {",
+        "  return { result: 1, error: 'Target node not found' };",
+        "}",
+        "",
+        "return jelastic.env.control.ExecCmdById(",
+        "  targetEnv,",
+        "  session,",
+        "  targetNodeId,",
+        "  toJSON([{",
+        "    'command': 'mkdir -p /root/.ssh && chmod 700 /root/.ssh && echo \"' + publicKey.trim() + '\" >> /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys && sort -u /root/.ssh/authorized_keys -o /root/.ssh/authorized_keys'",
+        "  }])",
+        ");"
+      ]
+    },
+
+    "setupSyncScript": {
+      "cmd [${targetNodes.nodeGroup}]": [
+        "cat > /usr/local/bin/synchro-addon-sync.sh << 'SYNCSCRIPT'",
+        "#!/bin/bash",
+        "",
+        "# Synchro Add-on Sync Script",
+        "SYNC_FOLDER='${settings.syncFolder}'",
+        "SYNC_DIRECTION='${settings.syncDirection}'",
+        "SYNC_METHOD='${settings.syncMethod}'",
+        "TARGET_ENV='${settings.targetEnv}'",
+        "TARGET_NODE='${settings.targetNode}'",
+        "RSYNC_OPTIONS='${settings.rsyncOptions}'",
+        "SSH_KEY='/root/.ssh/id_synchro-add-on'",
+        "LOG_FILE='/var/log/synchro-addon.log'",
+        "",
+        "# Ensure log directory exists",
+        "mkdir -p $(dirname $LOG_FILE)",
+        "",
+        "# Log function",
+        "log() {",
+        "  echo \"[$(date '+%Y-%m-%d %H:%M:%S')] $1\" >> $LOG_FILE",
+        "}",
+        "",
+        "# Get target address based on method",
+        "if [ \"$SYNC_METHOD\" = \"ip\" ]; then",
+        "  TARGET_ADDRESS=\"$TARGET_NODE\"",
+        "else",
+        "  # Resolve node name to IP if needed",
+        "  TARGET_ADDRESS=\"$TARGET_NODE\"",
+        "fi",
+        "",
+        "log \"Starting sync: Direction=$SYNC_DIRECTION, Target=$TARGET_ADDRESS\"",
+        "",
+        "# Perform sync based on direction",
+        "if [ \"$SYNC_DIRECTION\" = \"from\" ]; then",
+        "  # Sync FROM remote TO local",
+        "  rsync $RSYNC_OPTIONS \\",
+        "    -e \"ssh -i $SSH_KEY -o StrictHostKeyChecking=no\" \\",
+        "    root@$TARGET_ADDRESS:$SYNC_FOLDER/ \\",
+        "    $SYNC_FOLDER/ >> $LOG_FILE 2>&1",
+        "else",
+        "  # Sync FROM local TO remote",
+        "  rsync $RSYNC_OPTIONS \\",
+        "    -e \"ssh -i $SSH_KEY -o StrictHostKeyChecking=no\" \\",
+        "    $SYNC_FOLDER/ \\",
+        "    root@$TARGET_ADDRESS:$SYNC_FOLDER/ >> $LOG_FILE 2>&1",
+        "fi",
+        "",
+        "SYNC_RESULT=$?",
+        "",
+        "if [ $SYNC_RESULT -eq 0 ]; then",
+        "  log \"Sync completed successfully\"",
+        "else",
+        "  log \"Sync failed with exit code $SYNC_RESULT\"",
+        "fi",
+        "",
+        "exit $SYNC_RESULT",
+        "SYNCSCRIPT",
+        "chmod +x /usr/local/bin/synchro-addon-sync.sh"
+      ]
+    },
+
+    "setupCronJob": {
+      "cmd [${targetNodes.nodeGroup}]": [
+        "CRON_INTERVAL='${settings.syncInterval}'",
+        "CRON_LINE=\"*/$CRON_INTERVAL * * * * /usr/local/bin/synchro-addon-sync.sh\"",
+        "crontab -l 2>/dev/null | grep -v 'synchro-addon-sync.sh' > /tmp/crontab.tmp || true",
+        "echo \"$CRON_LINE\" >> /tmp/crontab.tmp",
+        "crontab /tmp/crontab.tmp",
+        "rm -f /tmp/crontab.tmp",
+        "echo \"Cron job installed: sync every $CRON_INTERVAL minutes\""
+      ]
+    },
+
+    "testSync": {
+      "cmd [${targetNodes.nodeGroup}]": [
+        "/usr/local/bin/synchro-addon-sync.sh",
+        "echo 'Initial sync completed. Check /var/log/synchro-addon.log for details.'"
+      ]
+    },
+
+    "removePublicKeyFromRemote": {
+      "script": [
+        "var targetEnv = '${settings.targetEnv}';",
+        "var targetNode = '${settings.targetNode}';",
+        "",
+        "var resp = jelastic.env.control.GetEnvInfo(targetEnv, session);",
+        "if (resp.result != 0) return resp;",
+        "",
+        "var nodes = resp.nodes;",
+        "var targetNodeId = null;",
+        "",
+        "for (var i = 0; i < nodes.length; i++) {",
+        "  if (nodes[i].id == targetNode || nodes[i].address == targetNode) {",
+        "    targetNodeId = nodes[i].id;",
+        "    break;",
+        "  }",
+        "}",
+        "",
+        "if (!targetNodeId) {",
+        "  return { result: 0 };",
+        "}",
+        "",
+        "return jelastic.env.control.ExecCmdById(",
+        "  targetEnv,",
+        "  session,",
+        "  targetNodeId,",
+        "  toJSON([{",
+        "    'command': 'sed -i \"/synchro-add-on/d\" /root/.ssh/authorized_keys 2>/dev/null || true'",
+        "  }])",
+        ");"
+      ]
+    },
+
+    "removeCronJob": {
+      "cmd [${targetNodes.nodeGroup}]": [
+        "crontab -l 2>/dev/null | grep -v 'synchro-addon-sync.sh' | crontab - || true",
+        "echo 'Cron job removed'"
+      ]
+    },
+
+    "cleanupScripts": {
+      "cmd [${targetNodes.nodeGroup}]": [
+        "rm -f /usr/local/bin/synchro-addon-sync.sh",
+        "echo 'Cleanup completed. SSH key kept at /root/.ssh/id_synchro-add-on for reuse.'"
+      ]
+    }
+  },
+
+  "success": {
+    "text": "Synchro Add-on installed successfully!<br><br>Sync Settings:<br>- Folder: ${settings.syncFolder}<br>- Direction: ${settings.syncDirection}<br>- Interval: Every ${settings.syncInterval} minutes<br>- Target: ${settings.targetNode} in ${settings.targetEnv}<br><br>Check sync log: /var/log/synchro-addon.log"
+  }
+}

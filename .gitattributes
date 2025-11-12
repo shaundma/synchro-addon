@@ -1,0 +1,17 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Shell scripts
+*.sh text eol=lf
+
+# JSON files
+*.json text eol=lf
+*.jps text eol=lf
+
+# Markdown files
+*.md text eol=lf
+
+# Exclude files from export
+.gitattributes export-ignore
+.gitignore export-ignore
+test-local.sh export-ignore
