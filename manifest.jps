@@ -2,8 +2,8 @@
   "jpsType": "update",
   "jpsVersion": "1.8",
   "id": "synchro-addon",
-  "name": "Synchro Add-on",
-  "version": "1.1.1",
+  "name": "Synchro Add-on v1.1.2",
+  "version": "1.1.2",
   "logo": "images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
   "description": "Synchronize files and folders between nodes using rsync",
@@ -48,7 +48,7 @@
       },
       {
         "type": "string",
-        "name": "remoteNodeIP",
+        "name": "remoteIP",
         "caption": "Remote Node IP Address",
         "required": true,
         "placeholder": "e.g. 192.168.1.10"
@@ -56,7 +56,7 @@
     ]
   },
   "onInstall": {
-    "log": "Synchro Add-on settings: Folder=${settings.syncFolder}, Direction=${settings.syncDirection}, Interval=${settings.syncInterval}, Remote=${settings.remoteEnv}/${settings.remoteNodeIP}"
+    "log": "Synchro Add-on settings: Folder=${settings.syncFolder}, Direction=${settings.syncDirection}, Interval=${settings.syncInterval}, Remote=${settings.remoteEnv}/${settings.remoteIP}"
   },
-  "success": "Synchro Add-on form test successful!<br><br>Configuration captured:<br>- Folder: ${settings.syncFolder}<br>- Direction: ${settings.syncDirection}<br>- Interval: Every ${settings.syncInterval} minutes<br>- Remote: ${settings.remoteNodeIP} in ${settings.remoteEnv}<br><br>This is a test version - no sync configured yet."
+  "success": "Synchro Add-on form test successful!<br><br>Configuration captured:<br>- Folder: ${settings.syncFolder}<br>- Direction: ${settings.syncDirection}<br>- Interval: Every ${settings.syncInterval} minutes<br>- Remote: ${settings.remoteIP} in ${settings.remoteEnv}<br><br>This is a test version - no sync configured yet."
 }
