@@ -3,7 +3,7 @@
   "jpsVersion": "1.8",
   "id": "synchro-addon",
   "name": "Synchro Add-on",
-  "version": "1.1.3",
+  "version": "1.2.0",
   "description": "Synchronize files and folders between nodes using rsync",
   "logo": "https://raw.githubusercontent.com/shaundma/synchro-addon/master/images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
@@ -14,40 +14,6 @@
 
   "settings": {
     "fields": [
-      {
-        "type": "envlist",
-        "name": "targetEnv",
-        "caption": "Remote Environment",
-        "required": true
-      },
-      {
-        "type": "list",
-        "name": "targetNode",
-        "caption": "Remote Node",
-        "required": true,
-        "dependsOn": {
-          "targetEnv": {
-            "script": [
-              "var resp = jelastic.env.control.GetEnvInfo('${this.targetEnv}', session);",
-              "if (resp.result != 0) return resp;",
-              "",
-              "var nodes = resp.nodes || [];",
-              "var values = {};",
-              "",
-              "for (var i = 0; i < nodes.length; i++) {",
-              "  var node = nodes[i];",
-              "  var ip = node.intIP || node.address || node.extIPs || 'unknown';",
-              "  var name = node.name || node.id || 'node';",
-              "  var type = node.nodeType || 'unknown';",
-              "  var label = name + ' [' + type + '] - ' + ip;",
-              "  values[ip] = label;",
-              "}",
-              "",
-              "return { result: 0, values: values };"
-            ]
-          }
-        }
-      },
       {
         "type": "string",
         "name": "syncFolder",
@@ -84,6 +50,40 @@
         "max": 2880,
         "default": 5,
         "required": true
+      },
+      {
+        "type": "envlist",
+        "name": "targetEnv",
+        "caption": "Remote Environment",
+        "required": true
+      },
+      {
+        "type": "list",
+        "name": "targetNode",
+        "caption": "Remote Node",
+        "required": true,
+        "dependsOn": {
+          "targetEnv": {
+            "script": [
+              "var resp = jelastic.env.control.GetEnvInfo('${this.targetEnv}', session);",
+              "if (resp.result != 0) return resp;",
+              "",
+              "var nodes = resp.nodes || [];",
+              "var values = {};",
+              "",
+              "for (var i = 0; i < nodes.length; i++) {",
+              "  var node = nodes[i];",
+              "  var ip = node.intIP || node.address || node.extIPs || 'unknown';",
+              "  var name = node.name || node.id || 'node';",
+              "  var type = node.nodeType || 'unknown';",
+              "  var label = name + ' [' + type + '] - ' + ip;",
+              "  values[ip] = label;",
+              "}",
+              "",
+              "return { result: 0, values: values };"
+            ]
+          }
+        }
       }
     ]
   },
