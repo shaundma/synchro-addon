@@ -2,7 +2,7 @@ type: update
 logo: images/icon.png
 homepage: https://github.com/shaundma/synchro-addon
 
-version: '1.0.2'
+version: '1.0.3'
 baseUrl: https://raw.githubusercontent.com/shaundma/synchro-addon/master/
 
 targetEditions: any
@@ -73,19 +73,7 @@ settings:
     dependsOn:
       remoteEnv:
         script:
-        - var resp = jelastic.env.control.GetEnvInfo('${this.remoteEnv}', session);
-        - if (resp.result != 0) return resp;
-        - var nodes = resp.nodes || [];
-        - var values = {};
-        - for (var i = 0; i < nodes.length; i++) {
-        -   var node = nodes[i];
-        -   var ip = node.intIP || node.address;
-        -   var name = node.name;
-        -   var type = node.nodeType;
-        -   var label = name + ' [' + type + '] - IP: ' + ip;
-        -   values[ip] = label;
-        - }
-        - return { result: 0, values: values };
+        - return { result: 0, values: { '192.168.1.1': 'Test Node 1 [apache] - IP: 192.168.1.1', '192.168.1.2': 'Test Node 2 [nginx] - IP: 192.168.1.2' } };
 
 onAfterCloneNodes: installRsyncDaemon
 
