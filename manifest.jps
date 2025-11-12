@@ -3,7 +3,7 @@
   "jpsVersion": "1.8",
   "id": "synchro-addon",
   "name": "Synchro Add-on",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Synchronize files and folders between nodes using rsync",
   "logo": "https://raw.githubusercontent.com/shaundma/synchro-addon/master/images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
@@ -17,32 +17,22 @@
       {
         "type": "envlist",
         "name": "targetEnv",
-        "caption": "Target Environment",
+        "caption": "Remote Environment",
         "required": true
       },
       {
         "type": "list",
         "name": "targetNode",
-        "caption": "Target Node",
+        "caption": "Remote Node",
         "required": true,
         "dependsOn": {
-          "targetEnv": {
-            "script": [
-              "var resp = jelastic.env.control.GetEnvInfo('${this.targetEnv}', session);",
-              "if (resp.result != 0) return resp;",
-              "",
-              "var nodes = resp.nodes || [];",
-              "var values = {};",
-              "",
-              "for (var i = 0; i < nodes.length; i++) {",
-              "  var node = nodes[i];",
-              "  var label = node.name + ' (' + node.nodeType + ') - ' + node.address;",
-              "  values[node.address] = label;",
-              "}",
-              "",
-              "return { result: 0, values: values };"
-            ]
-          }
+          "targetEnv": [
+            {
+              "getEnvNodes": {
+                "envName": "${this.targetEnv}"
+              }
+            }
+          ]
         }
       },
       {
@@ -119,6 +109,25 @@
   ],
 
   "actions": {
+    "getEnvNodes": {
+      "script": [
+        "var resp = jelastic.env.control.GetEnvInfo('${this.envName}', session);",
+        "if (resp.result != 0) return resp;",
+        "",
+        "var nodes = resp.nodes || [];",
+        "var values = {};",
+        "",
+        "for (var i = 0; i < nodes.length; i++) {",
+        "  var node = nodes[i];",
+        "  var intIp = node.intIP || node.address || 'N/A';",
+        "  var label = node.name + ' (' + node.nodeType + ') - IP: ' + intIp;",
+        "  values[intIp] = label;",
+        "}",
+        "",
+        "return { result: 0, values: values };"
+      ]
+    },
+
     "installDependencies": {
       "cmd [${targetNodes.nodeGroup}]": [
         "command -v rsync >/dev/null 2>&1 || yum install -y rsync || apt-get install -y rsync"
