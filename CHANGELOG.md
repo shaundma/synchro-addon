@@ -5,6 +5,12 @@ All notable changes to the Synchro Add-on will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2025-11-12
+
+### Fixed
+- Fixed dependsOn syntax - now uses inline script instead of action reference
+- Node dropdown should now properly populate with nodes and IP addresses
+
 ## [1.1.1] - 2025-11-12
 
 ### Fixed
