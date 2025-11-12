@@ -3,7 +3,7 @@
   "jpsVersion": "1.8",
   "id": "synchro-addon",
   "name": "Synchro Add-on",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Synchronize files and folders between nodes using rsync",
   "logo": "https://raw.githubusercontent.com/shaundma/synchro-addon/master/images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
@@ -14,6 +14,37 @@
 
   "settings": {
     "fields": [
+      {
+        "type": "envlist",
+        "name": "targetEnv",
+        "caption": "Target Environment",
+        "required": true
+      },
+      {
+        "type": "list",
+        "name": "targetNode",
+        "caption": "Target Node",
+        "required": true,
+        "dependsOn": {
+          "targetEnv": {
+            "script": [
+              "var resp = jelastic.env.control.GetEnvInfo('${this.targetEnv}', session);",
+              "if (resp.result != 0) return resp;",
+              "",
+              "var nodes = resp.nodes || [];",
+              "var values = {};",
+              "",
+              "for (var i = 0; i < nodes.length; i++) {",
+              "  var node = nodes[i];",
+              "  var label = node.name + ' (' + node.nodeType + ') - ' + node.address;",
+              "  values[node.address] = label;",
+              "}",
+              "",
+              "return { result: 0, values: values };"
+            ]
+          }
+        }
+      },
       {
         "type": "string",
         "name": "syncFolder",
@@ -28,8 +59,8 @@
         "caption": "Sync Direction",
         "default": "from",
         "values": {
-          "from": "Sync FROM remote node TO this node",
-          "to": "Sync FROM this node TO remote node"
+          "from": "Sync FROM remote TO target",
+          "to": "Sync TO remote FROM target"
         }
       },
       {
@@ -43,27 +74,6 @@
         }
       },
       {
-        "type": "envlist",
-        "name": "targetEnv",
-        "caption": "Target Environment",
-        "required": true
-      },
-      {
-        "type": "list",
-        "name": "targetNode",
-        "caption": "Target Node",
-        "required": true,
-        "dependsOn": {
-          "targetEnv": {
-            "api": "environment.control.GetEnvInfo",
-            "params": {
-              "envName": "${this.targetEnv}"
-            }
-          }
-        },
-        "values": []
-      },
-      {
         "type": "spinner",
         "name": "syncInterval",
         "caption": "Sync Interval (minutes)",
@@ -71,13 +81,6 @@
         "max": 2880,
         "default": 5,
         "required": true
-      },
-      {
-        "type": "string",
-        "name": "rsyncOptions",
-        "caption": "Rsync Options",
-        "default": "-avz --delete",
-        "placeholder": "-avz --delete"
       }
     ]
   },
@@ -181,7 +184,7 @@
         "SYNC_METHOD='${settings.syncMethod}'",
         "TARGET_ENV='${settings.targetEnv}'",
         "TARGET_NODE='${settings.targetNode}'",
-        "RSYNC_OPTIONS='${settings.rsyncOptions}'",
+        "RSYNC_OPTIONS='-avz --delete'",
         "SSH_KEY='/root/.ssh/id_synchro-add-on'",
         "LOG_FILE='/var/log/synchro-addon.log'",
         "",
