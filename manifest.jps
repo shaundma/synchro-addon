@@ -2,7 +2,7 @@ type: update
 logo: images/icon.png
 homepage: https://github.com/shaundma/synchro-addon
 
-version: '1.0.4'
+version: '1.0.5'
 baseUrl: https://raw.githubusercontent.com/shaundma/synchro-addon/master/
 
 targetEditions: any
@@ -89,43 +89,6 @@ onBeforeInit: |
   };
 
 onInstall: installRsyncDaemon
-
-settings_disabled:
-  fields:
-  - type: string
-    name: syncFolder
-    caption: Folder to Sync
-    required: true
-    default: /var/www/webroot/ROOT
-    placeholder: /path/to/folder
-  - type: radio-fieldset
-    name: syncDirection
-    caption: Sync Direction
-    default: from
-    values:
-      from:
-        en: FROM target TO remote
-      to:
-        en: TO target FROM remote
-  - type: spinner
-    name: syncInterval
-    caption: Sync Interval (minutes)
-    min: 1
-    max: 2880
-    default: 5
-    required: true
-  - type: envlist
-    name: remoteEnv
-    caption: Remote Environment
-    required: true
-  - type: list
-    name: remoteNode
-    caption: Remote Node
-    required: true
-    dependsOn:
-      remoteEnv:
-        script:
-        - return { result: 0, values: { '192.168.1.1': 'Test Node 1 [apache] - IP: 192.168.1.1', '192.168.1.2': 'Test Node 2 [nginx] - IP: 192.168.1.2' } };
 
 onAfterCloneNodes: installRsyncDaemon
 
