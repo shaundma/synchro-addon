@@ -3,7 +3,7 @@
   "jpsVersion": "1.8",
   "id": "synchro-addon",
   "name": "Synchro Add-on",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "logo": "images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
   "description": "Synchronize files and folders between nodes using rsync",
@@ -47,11 +47,29 @@
         "required": true
       },
       {
-        "type": "string",
+        "type": "list",
         "name": "remoteNodeIP",
-        "caption": "Remote Node IP",
+        "caption": "Remote Node",
         "required": true,
-        "placeholder": "Enter IP address of remote node"
+        "dependsOn": {
+          "remoteEnv": {
+            "script": [
+              "var resp = jelastic.env.control.GetEnvInfo('${this.remoteEnv}', session);",
+              "if (resp.result != 0) return resp;",
+              "var nodes = resp.nodes || [];",
+              "var values = {};",
+              "for (var i = 0; i < nodes.length; i++) {",
+              "  var node = nodes[i];",
+              "  var ip = node.intIP || node.address;",
+              "  var name = node.name;",
+              "  var type = node.nodeType;",
+              "  var label = name + ' [' + type + '] - IP: ' + ip;",
+              "  values[ip] = label;",
+              "}",
+              "return { result: 0, values: values };"
+            ]
+          }
+        }
       }
     ]
   },
