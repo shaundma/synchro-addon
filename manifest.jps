@@ -2,8 +2,8 @@
   "jpsType": "update",
   "jpsVersion": "1.8",
   "id": "synchro-addon",
-  "name": "Synchro Add-on v1.5.2",
-  "version": "1.5.2",
+  "name": "Synchro Add-on v1.6.0",
+  "version": "1.6.0",
   "logo": "images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
   "description": "Synchronize files and folders between nodes using rsync",
@@ -40,13 +40,26 @@
         }
       },
       {
+        "type": "radio-fieldset",
+        "name": "syncMode",
+        "caption": "Sync Mode",
+        "default": "automatic",
+        "values": {
+          "onetime": "One-time sync only",
+          "automatic": "Automatic recurring sync"
+        }
+      },
+      {
         "type": "spinner",
         "name": "syncInterval",
         "caption": "Sync Interval (minutes)",
         "min": 1,
         "max": 2880,
         "default": 15,
-        "required": true
+        "required": true,
+        "showIf": {
+          "syncMode": "automatic"
+        }
       },
       {
         "type": "string",
@@ -214,11 +227,21 @@
       }
     },
     "setupCronJob": {
-      "cmd [${targetNodes.nodeGroup}]": {
-        "commands": [
-          "(crontab -l 2>/dev/null | grep -v 'synchro-sync.sh'; echo '*/${settings.syncInterval} * * * * /usr/local/bin/synchro-sync.sh') | crontab - && echo 'Cron job installed: sync every ${settings.syncInterval} minutes'"
-        ],
-        "user": "root"
+      "if (${settings.syncMode} == 'automatic')": {
+        "cmd [${targetNodes.nodeGroup}]": {
+          "commands": [
+            "(crontab -l 2>/dev/null | grep -v 'synchro-sync.sh'; echo '*/${settings.syncInterval} * * * * /usr/local/bin/synchro-sync.sh') | crontab - && echo 'Cron job installed: sync every ${settings.syncInterval} minutes'"
+          ],
+          "user": "root"
+        }
+      },
+      "if (${settings.syncMode} == 'onetime')": {
+        "cmd [${targetNodes.nodeGroup}]": {
+          "commands": [
+            "crontab -l 2>/dev/null | grep -v 'synchro-sync.sh' | crontab - || true && echo 'One-time sync mode: cron job removed'"
+          ],
+          "user": "root"
+        }
       }
     },
     "testSync": {
@@ -259,9 +282,26 @@
       "setupSyncScript",
       "setupCronJob",
       {
+        "script": [
+          "var syncMode = '${settings.syncMode}';",
+          "var syncInterval = '${settings.syncInterval}';",
+          "var syncDirection = '${settings.syncDirection}';",
+          "var directionText = syncDirection == 'from' ? 'FROM local TO remote' : 'FROM remote TO local';",
+          "var modeText = syncMode == 'onetime' ? 'One-time sync only' : 'Automatic every ' + syncInterval + ' minutes';",
+          "",
+          "var message = 'Configuration updated successfully!\\n\\n';",
+          "message += 'New settings:\\n';",
+          "message += '- Folder on local: ${settings.syncFolder}\\n';",
+          "message += '- Folder on remote: ${settings.remoteSyncFolder}\\n';",
+          "message += '- Direction: ' + directionText + '\\n';",
+          "message += '- Sync mode: ' + modeText + '\\n';",
+          "message += '- Remote IP: ${settings.remoteIP}';",
+          "",
+          "return { result: 0, message: message };"
+        ],
         "return": {
           "type": "success",
-          "message": "Configuration updated successfully!\n\nNew settings:\n- Folder on local: ${settings.syncFolder}\n- Folder on remote: ${settings.remoteSyncFolder}\n- Direction: ${settings.syncDirection == 'from' ? 'FROM local TO remote' : 'FROM remote TO local'}\n- Interval: Every ${settings.syncInterval} minutes\n- Remote IP: ${settings.remoteIP}"
+          "message": "${response.message}"
         }
       }
     ],
@@ -281,10 +321,12 @@
         "var syncFolder = '${settings.syncFolder}';",
         "var remoteSyncFolder = '${settings.remoteSyncFolder}';",
         "var syncDirection = '${settings.syncDirection}';",
+        "var syncMode = '${settings.syncMode}';",
         "var syncInterval = '${settings.syncInterval}';",
         "var remoteIP = '${settings.remoteIP}';",
         "",
         "var directionText = syncDirection == 'from' ? 'FROM local TO remote' : 'FROM remote TO local';",
+        "var modeText = syncMode == 'onetime' ? 'One-time sync only' : 'Automatic every ' + syncInterval + ' minutes';",
         "",
         "var message = 'Synchro Add-on installed successfully!\\n\\n';",
         "message += 'Configuration:\\n';",
@@ -292,7 +334,7 @@
         "message += '- Folder on local: ' + syncFolder + '\\n';",
         "message += '- Folder on remote: ' + remoteSyncFolder + '\\n';",
         "message += '- Direction: ' + directionText + '\\n';",
-        "message += '- Interval: Every ' + syncInterval + ' minutes\\n';",
+        "message += '- Sync mode: ' + modeText + '\\n';",
         "message += '- Remote IP: ' + remoteIP + '\\n';",
         "",
         "if (!isInternal) {",
