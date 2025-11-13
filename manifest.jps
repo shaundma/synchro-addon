@@ -2,8 +2,8 @@
   "jpsType": "update",
   "jpsVersion": "1.8",
   "id": "synchro-addon",
-  "name": "Synchro Add-on v1.4.0",
-  "version": "1.4.0",
+  "name": "Synchro Add-on v1.5.0",
+  "version": "1.5.0",
   "logo": "images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
   "description": "Synchronize files and folders between nodes using rsync",
@@ -74,10 +74,12 @@
     "installDependencies",
     "setupSSHKey",
     "getNodeInfo",
-    "copyPublicKeyToRemote",
+    "checkIPType",
+    "copyPublicKeyToRemoteConditional",
     "setupSyncScript",
     "setupCronJob",
-    "testSync"
+    "testSync",
+    "showSuccessMessage"
   ],
   "onUninstall": [
     "removePublicKeyFromRemote",
@@ -117,6 +119,19 @@
       "setGlobals": {
         "nodeName": "${response.out}"
       }
+    },
+    "checkIPType": {
+      "script": [
+        "var remoteIP = '${settings.remoteIP}';",
+        "var isInternal = remoteIP.indexOf('10.20.') === 0;",
+        "return { result: 0, isInternal: isInternal };"
+      ],
+      "setGlobals": {
+        "isInternalIP": "${response.isInternal}"
+      }
+    },
+    "copyPublicKeyToRemoteConditional": {
+      "if (${globals.isInternalIP})": "copyPublicKeyToRemote"
     },
     "copyPublicKeyToRemote": [
       {
@@ -257,7 +272,51 @@
         ],
         "user": "root"
       }
+    },
+    "showSuccessMessage": {
+      "script": [
+        "var isInternal = ${globals.isInternalIP};",
+        "var publicKey = '${globals.publicKey}'.trim();",
+        "var nodeName = '${globals.nodeName}'.trim();",
+        "var syncFolder = '${settings.syncFolder}';",
+        "var remoteSyncFolder = '${settings.remoteSyncFolder}';",
+        "var syncDirection = '${settings.syncDirection}';",
+        "var syncInterval = '${settings.syncInterval}';",
+        "var remoteIP = '${settings.remoteIP}';",
+        "",
+        "var directionText = syncDirection == 'from' ? 'FROM local TO remote' : 'FROM remote TO local';",
+        "",
+        "var message = 'Synchro Add-on installed successfully!\\n\\n';",
+        "message += 'Configuration:\\n';",
+        "message += '- Installed on: ' + nodeName + '\\n';",
+        "message += '- Folder on local: ' + syncFolder + '\\n';",
+        "message += '- Folder on remote: ' + remoteSyncFolder + '\\n';",
+        "message += '- Direction: ' + directionText + '\\n';",
+        "message += '- Interval: Every ' + syncInterval + ' minutes\\n';",
+        "message += '- Remote IP: ' + remoteIP + '\\n';",
+        "",
+        "if (!isInternal) {",
+        "  message += '\\n--- EXTERNAL IP DETECTED ---\\n';",
+        "  message += 'Manual SSH key installation required:\\n\\n';",
+        "  message += '1. Ensure port 22 is accessible on ' + remoteIP + '\\n';",
+        "  message += '2. Add this public key to /root/.ssh/authorized_keys on the remote node:\\n\\n';",
+        "  message += publicKey + '\\n\\n';",
+        "  message += '3. Commands to run on remote node:\\n';",
+        "  message += '   mkdir -p /root/.ssh\\n';",
+        "  message += '   chmod 700 /root/.ssh\\n';",
+        "  message += '   echo \"' + publicKey + '\" >> /root/.ssh/authorized_keys\\n';",
+        "  message += '   chmod 600 /root/.ssh/authorized_keys\\n';",
+        "}",
+        "",
+        "message += '\\nSync script: /usr/local/bin/synchro-sync.sh\\n';",
+        "message += 'Sync log: /var/log/synchro-addon.log';",
+        "",
+        "return { result: 0, message: message };"
+      ],
+      "return": {
+        "type": "success",
+        "message": "${response.message}"
+      }
     }
-  },
-  "success": "Synchro Add-on installed successfully!\n\nConfiguration:\n- Installed on: ${globals.nodeName}\n- Folder on local: ${settings.syncFolder}\n- Folder on remote: ${settings.remoteSyncFolder}\n- Direction: ${settings.syncDirection == 'from' ? 'FROM local TO remote' : 'FROM remote TO local'}\n- Interval: Every ${settings.syncInterval} minutes\n- Remote IP: ${settings.remoteIP}\n\nSync script: /usr/local/bin/synchro-sync.sh\nSync log: /var/log/synchro-addon.log"
+  }
 }
