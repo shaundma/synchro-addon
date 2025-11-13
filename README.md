@@ -2,7 +2,7 @@
 
 A Jelastic JPS add-on that synchronizes files between nodes using rsync over SSH.
 
-**Current Version:** v1.6.2
+**Current Version:** v1.6.3
 
 **Repository:** https://github.com/shaundma/synchro-addon
 
@@ -16,11 +16,11 @@ https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps
 - ✅ **Bidirectional sync** - Sync FROM local TO remote or FROM remote TO local
 - ✅ **Flexible sync modes** - One-time sync or automatic recurring sync
 - ✅ **Separate folder paths** - Sync between different folders on local and remote
-- ✅ **Internal & External IPs** - Supports both Jelastic internal IPs and external servers
+- ✅ **Private & Public IPs** - Supports both private network IPs and external servers
 - ✅ **Auto environment discovery** - Automatically finds the environment from IP address
 - ✅ **Configure button** - Update settings without reinstalling
 - ✅ **Sync Now button** - Manually trigger immediate sync
-- ✅ **SSH key automation** - Automatic SSH key generation and distribution (internal IPs)
+- ✅ **SSH key automation** - Automatic SSH key generation and distribution (private IPs)
 - ✅ **Any node type** - Works with storage, web servers, databases, VPS, etc.
 
 ## How It Works
@@ -39,16 +39,17 @@ https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps
 4. Select **Environment** and **Nodes** (the local node where add-on will be installed)
 5. Click **Install**
 
-### Internal IPs (10.20.x.x)
+### Private Network IPs
 
-For Jelastic internal IPs starting with `10.20`:
+For private network IPs (RFC 1918: 10.x.x.x, 172.16-31.x.x, 192.168.x.x):
+- Automatic environment discovery via Jelastic API
 - SSH key is automatically distributed to remote node
 - No manual setup required
 - Sync starts immediately
 
-### External IPs
+### Public/External IPs
 
-For external servers:
+For public IP addresses or external servers:
 - Installation provides the public key
 - Manually add the key to `/root/.ssh/authorized_keys` on remote server
 - Ensure port 22 is accessible
@@ -129,6 +130,11 @@ ssh -i /root/.ssh/id_synchro root@REMOTE_IP cat /path/to/remote/folder/test.txt
 
 ## Version History
 
+### v1.6.3 (2025-11-13)
+- Detect all RFC 1918 private IP ranges (10.x, 172.16-31.x, 192.168.x)
+- Generic private/public IP detection instead of hardcoded ranges
+- Updated documentation to not mention specific IP ranges
+
 ### v1.6.2 (2025-11-13)
 - Updated README with comprehensive documentation
 - Added features list, use cases, and improved troubleshooting guide
@@ -192,8 +198,8 @@ Replaced during installation via `sed`.
 ### SSH Key Management
 - 4096-bit RSA key generated
 - Stored as `/root/.ssh/id_synchro`
-- For internal IPs: Distributed via Jelastic API `ExecCmdById`
-- For external IPs: User manually installs
+- For private IPs: Automatically distributed via Jelastic API `ExecCmdById`
+- For public IPs: User manually installs
 
 ### Sync Script
 - Uses rsync with `--delete` flag (mirror mode)
@@ -205,10 +211,12 @@ Replaced during installation via `sed`.
 - Removes old entries before adding new
 - Atomic installation via pipe to crontab
 
-### Environment Discovery
-- Searches all accessible environments via `GetEnvs()`
+### IP Type Detection & Environment Discovery
+- Detects RFC 1918 private IP ranges (10.x.x.x, 172.16-31.x.x, 192.168.x.x)
+- For private IPs: Searches all accessible environments via `GetEnvs()`
 - Finds environment containing node with matching IP
 - Works with both `intIP` and `address` fields
+- Public IPs skip automatic discovery and key distribution
 
 ## Development
 
