@@ -2,8 +2,8 @@
   "jpsType": "update",
   "jpsVersion": "1.8",
   "id": "synchro-addon",
-  "name": "Synchro Add-on v1.5.1",
-  "version": "1.5.1",
+  "name": "Synchro Add-on v1.5.2",
+  "version": "1.5.2",
   "logo": "images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
   "description": "Synchronize files and folders between nodes using rsync",
@@ -308,10 +308,10 @@
         "",
         "return { result: 0, message: message };"
       ],
-      "return": {
-        "type": "success",
-        "message": "${response.message}"
+      "setGlobals": {
+        "successMessage": "${response.message}"
       }
     }
-  }
+  },
+  "success": "${globals.successMessage}"
 }
