@@ -2,7 +2,7 @@
 
 A Jelastic JPS add-on that synchronizes files between nodes using rsync over SSH.
 
-**Current Version:** v1.6.3
+**Current Version:** v1.7.2
 
 **Repository:** https://github.com/shaundma/synchro-addon
 
@@ -33,9 +33,9 @@ https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps
    - **Folder on local** - Path on the node where add-on is installed
    - **Folder on remote** - Path on the remote node
    - **Sync Direction** - FROM local TO remote, or FROM remote TO local
-   - **Sync Mode** - One-time or automatic recurring
-   - **Interval** - Minutes between syncs (only for automatic mode)
-   - **Remote Node IP** - IP address of remote node
+   - **Remote Node IP Address** - IP address of remote node
+   - **Sync Mode** - One-time sync only (default) or automatic recurring
+   - **Every (minutes)** - Minutes between syncs (for automatic mode)
 4. Select **Environment** and **Nodes** (the local node where add-on will be installed)
 5. Click **Install**
 
@@ -64,17 +64,18 @@ After installation, you'll see two buttons in Application → Add-Ons:
 
 ## Sync Modes
 
-### One-time Sync Only
+### One-time Sync Only (Default)
 - Initial sync runs during installation
 - No automatic syncing
-- Use "Sync Now" button to sync manually
+- Use "Sync Now" button to sync manually whenever needed
 - Perfect for on-demand syncing
+- **This is the default mode** - safer and gives you full control
 
 ### Automatic Recurring Sync
 - Runs automatically via cron job
 - Set interval from 1 to 2880 minutes (48 hours)
-- Default: every 15 minutes
-- Can still use "Sync Now" for immediate sync
+- Default interval: every 15 minutes
+- Can still use "Sync Now" for immediate sync between scheduled runs
 
 ## File Locations
 
@@ -129,6 +130,44 @@ ssh -i /root/.ssh/id_synchro root@REMOTE_IP cat /path/to/remote/folder/test.txt
 ```
 
 ## Version History
+
+### v1.7.2 (2025-11-13)
+- Updated README with current version and complete version history
+- Updated form field descriptions to reflect new order
+- Clarified default sync mode documentation
+- Updated cache-busting URL example
+
+### v1.7.1 (2025-11-13)
+- Fixed Sync Now button to show correct success message
+- No longer shows full installation message on manual sync
+- Clean, appropriate message for sync operations
+
+### v1.7.0 (2025-11-13)
+- Reordered form fields for better flow
+- Remote Node IP Address moved above Sync Mode section
+- Better logical grouping of connection and sync settings
+
+### v1.6.9 (2025-11-13)
+- Changed interval label to "Every (minutes)"
+- More concise and clearer labeling
+
+### v1.6.8 (2025-11-13)
+- Removed explanatory text in parentheses
+- Cleaner form appearance
+
+### v1.6.7 (2025-11-13)
+- Attempted to clarify field labels with inline help text
+
+### v1.6.6 (2025-11-13)
+- Attempted conditional display of interval field
+
+### v1.6.5 (2025-11-13)
+- Changed default sync mode to "One-time sync only"
+- Safer default prevents unintended automatic syncing
+
+### v1.6.4 (2025-11-13)
+- Fixed sync mode option order using array format
+- "One-time sync only" now displays first
 
 ### v1.6.3 (2025-11-13)
 - Detect all RFC 1918 private IP ranges (10.x, 172.16-31.x, 192.168.x)
@@ -232,7 +271,7 @@ git push origin master
 ### Cache-Busting
 Use timestamp in URL for testing:
 ```
-https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps?t=20251113019
+https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps?t=20251113028
 ```
 
 ## Use Cases
