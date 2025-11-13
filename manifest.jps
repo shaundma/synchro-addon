@@ -2,8 +2,8 @@
   "jpsType": "update",
   "jpsVersion": "1.8",
   "id": "synchro-addon",
-  "name": "Synchro Add-on v1.3.6",
-  "version": "1.3.6",
+  "name": "Synchro Add-on v1.3.7",
+  "version": "1.3.7",
   "logo": "images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
   "description": "Synchronize files and folders between nodes using rsync",
@@ -60,6 +60,7 @@
   "onInstall": [
     "installDependencies",
     "setupSSHKey",
+    "getNodeInfo",
     "copyPublicKeyToRemote",
     "setupSyncScript",
     "setupCronJob",
@@ -91,6 +92,17 @@
       },
       "setGlobals": {
         "publicKey": "${response.out}"
+      }
+    },
+    "getNodeInfo": {
+      "cmd [${targetNodes.nodeGroup}]": {
+        "commands": [
+          "hostname"
+        ],
+        "user": "root"
+      },
+      "setGlobals": {
+        "nodeName": "${response.out}"
       }
     },
     "copyPublicKeyToRemote": [
@@ -216,5 +228,5 @@
       }
     }
   },
-  "success": "Synchro Add-on installed successfully!\n\nConfiguration:\n- Installed on: ${targetNodes.nodeGroup} nodes\n- Folder on local: ${settings.syncFolder}\n- Folder on remote: ${settings.remoteSyncFolder}\n- Direction: ${settings.syncDirection == 'from' ? 'FROM local TO remote' : 'FROM remote TO local'}\n- Interval: Every ${settings.syncInterval} minutes\n- Remote IP: ${settings.remoteIP}\n\nCheck sync log: /var/log/synchro-addon.log"
+  "success": "Synchro Add-on installed successfully!\n\nConfiguration:\n- Installed on: ${globals.nodeName}\n- Folder on local: ${settings.syncFolder}\n- Folder on remote: ${settings.remoteSyncFolder}\n- Direction: ${settings.syncDirection == 'from' ? 'FROM local TO remote' : 'FROM remote TO local'}\n- Interval: Every ${settings.syncInterval} minutes\n- Remote IP: ${settings.remoteIP}\n\nSync script: /usr/local/bin/synchro-sync.sh\nSync log: /var/log/synchro-addon.log"
 }
