@@ -2,7 +2,7 @@
 
 A Jelastic JPS add-on that synchronizes files between nodes using rsync over SSH.
 
-**Current Version:** v1.8.2
+**Current Version:** v1.9.0
 
 **Repository:** https://github.com/shaundma/synchro-addon
 
@@ -16,6 +16,7 @@ https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps
 - ✅ **Bidirectional sync** - Sync FROM local TO remote or FROM remote TO local
 - ✅ **Flexible sync modes** - One-time sync or automatic recurring sync
 - ✅ **Separate folder paths** - Sync between different folders on local and remote
+- ✅ **Automatic ownership** - Optional chown of local folder after sync TO local completes
 - ✅ **Private & Public IPs** - Supports both private network IPs and external servers
 - ✅ **Auto environment discovery** - Automatically finds the environment from IP address
 - ✅ **Configure button** - Update settings without reinstalling
@@ -31,6 +32,7 @@ https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps
 2. Paste the installation URL
 3. Fill in the form:
    - **Folder on local** - Path on the node where add-on is installed
+   - **Local owner** - Optional: Local user to chown folder after sync TO local (e.g. jelastic)
    - **Folder on remote** - Path on the remote node
    - **Sync Direction** - FROM local TO remote, or FROM remote TO local
    - **Remote User** - Username on remote node (default: root)
@@ -131,6 +133,12 @@ ssh -i /root/.ssh/id_synchro root@REMOTE_IP cat /path/to/remote/folder/test.txt
 ```
 
 ## Version History
+
+### v1.9.0 (2025-11-13)
+- Added Local owner field (optional)
+- Automatic chown -R of local folder after sync TO local completes
+- Only runs chown if Local owner is specified and sync direction is TO local
+- Updated success messages to show local owner configuration
 
 ### v1.8.2 (2025-11-13)
 - Improved public IP SSH key installation instructions
@@ -287,7 +295,7 @@ git push origin master
 ### Cache-Busting
 Use timestamp in URL for testing:
 ```
-https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps?t=20251113182
+https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps?t=20251113190
 ```
 
 ## Use Cases
