@@ -2,8 +2,8 @@
   "jpsType": "update",
   "jpsVersion": "1.8",
   "id": "synchro-addon",
-  "name": "Synchro Add-on v1.6.9",
-  "version": "1.6.9",
+  "name": "Synchro Add-on v1.7.0",
+  "version": "1.7.0",
   "logo": "images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
   "description": "Synchronize files and folders between nodes using rsync",
@@ -40,6 +40,13 @@
         }
       },
       {
+        "type": "string",
+        "name": "remoteIP",
+        "caption": "Remote Node IP Address",
+        "required": true,
+        "placeholder": "e.g. 192.168.1.10"
+      },
+      {
         "type": "radio-fieldset",
         "name": "syncMode",
         "caption": "Sync Mode",
@@ -57,13 +64,6 @@
         "max": 2880,
         "default": 15,
         "required": true
-      },
-      {
-        "type": "string",
-        "name": "remoteIP",
-        "caption": "Remote Node IP Address",
-        "required": true,
-        "placeholder": "e.g. 192.168.1.10"
       }
     ]
   },
