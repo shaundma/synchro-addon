@@ -2,8 +2,8 @@
   "jpsType": "update",
   "jpsVersion": "1.8",
   "id": "synchro-addon",
-  "name": "Synchro Add-on v1.7.0",
-  "version": "1.7.0",
+  "name": "Synchro Add-on v1.7.1",
+  "version": "1.7.1",
   "logo": "images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
   "description": "Synchronize files and folders between nodes using rsync",
@@ -322,14 +322,22 @@
         }
       }
     ],
-    "syncNow": {
-      "cmd [${targetNodes.nodeGroup}]": {
-        "commands": [
-          "/usr/local/bin/synchro-sync.sh && echo 'Sync completed. Check log: /var/log/synchro-addon.log'"
-        ],
-        "user": "root"
+    "syncNow": [
+      {
+        "cmd [${targetNodes.nodeGroup}]": {
+          "commands": [
+            "/usr/local/bin/synchro-sync.sh"
+          ],
+          "user": "root"
+        }
+      },
+      {
+        "return": {
+          "type": "success",
+          "message": "Sync completed successfully!\n\nCheck sync log for details: /var/log/synchro-addon.log"
+        }
       }
-    },
+    ],
     "showSuccessMessage": {
       "script": [
         "var isInternal = ${globals.isInternalIP};",
