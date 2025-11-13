@@ -2,8 +2,8 @@
   "jpsType": "update",
   "jpsVersion": "1.8",
   "id": "synchro-addon",
-  "name": "Synchro Add-on v1.3.4",
-  "version": "1.3.4",
+  "name": "Synchro Add-on v1.3.5",
+  "version": "1.3.5",
   "logo": "images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
   "description": "Synchronize files and folders between nodes using rsync",
@@ -16,7 +16,7 @@
       {
         "type": "string",
         "name": "syncFolder",
-        "caption": "Folder on target",
+        "caption": "Folder on local",
         "required": true,
         "default": "/var/www/webroot/ROOT",
         "placeholder": "/path/to/folder"
@@ -35,8 +35,8 @@
         "caption": "Sync Direction",
         "default": "from",
         "values": {
-          "from": "FROM target TO remote",
-          "to": "FROM remote TO target"
+          "from": "FROM local TO remote",
+          "to": "FROM remote TO local"
         }
       },
       {
@@ -216,5 +216,5 @@
       }
     }
   },
-  "success": "Synchro Add-on installed successfully!<br><br>Configuration:<br>- Installed on: ${targetNodes.nodeGroup} nodes<br>- Folder on target: ${settings.syncFolder}<br>- Folder on remote: ${settings.remoteSyncFolder}<br>- Direction: ${settings.syncDirection} (${settings.syncDirection == 'from' ? 'FROM target TO remote' : 'FROM remote TO target'})<br>- Interval: Every ${settings.syncInterval} minutes<br>- Remote IP: ${settings.remoteIP}<br><br>Check sync log: /var/log/synchro-addon.log"
+  "success": "Synchro Add-on installed successfully!<br><br>Configuration:<br>- Installed on: ${targetNodes.nodeGroup} nodes<br>- Folder on local: ${settings.syncFolder}<br>- Folder on remote: ${settings.remoteSyncFolder}<br>- Direction: ${settings.syncDirection} (${settings.syncDirection == 'from' ? 'FROM local TO remote' : 'FROM remote TO local'})<br>- Interval: Every ${settings.syncInterval} minutes<br>- Remote IP: ${settings.remoteIP}<br><br>Check sync log: /var/log/synchro-addon.log"
 }
