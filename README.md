@@ -2,7 +2,7 @@
 
 A Jelastic JPS add-on that synchronizes files between nodes using rsync over SSH.
 
-**Current Version:** v1.8.1
+**Current Version:** v1.8.2
 
 **Repository:** https://github.com/shaundma/synchro-addon
 
@@ -131,6 +131,10 @@ ssh -i /root/.ssh/id_synchro root@REMOTE_IP cat /path/to/remote/folder/test.txt
 ```
 
 ## Version History
+
+### v1.8.2 (2025-11-13)
+- Improved public IP SSH key installation instructions
+- Changed to generic "~/.ssh/authorized_keys in the home of the remote user" wording
 
 ### v1.8.1 (2025-11-13)
 - Reordered form fields: Remote User now appears above Remote Node IP Address
@@ -283,7 +287,7 @@ git push origin master
 ### Cache-Busting
 Use timestamp in URL for testing:
 ```
-https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps?t=20251113181
+https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps?t=20251113182
 ```
 
 ## Use Cases
