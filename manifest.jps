@@ -2,8 +2,8 @@
   "jpsType": "update",
   "jpsVersion": "1.8",
   "id": "synchro-addon",
-  "name": "Synchro Add-on v1.9.0",
-  "version": "1.9.0",
+  "name": "Synchro Add-on v1.9.1",
+  "version": "1.9.1",
   "logo": "images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
   "description": "Synchronize files and folders between nodes using rsync",
@@ -261,22 +261,28 @@
       }
     },
     "setupCronJob": {
-      "if (${settings.syncMode} == 'automatic')": {
-        "cmd [${targetNodes.nodeGroup}]": {
-          "commands": [
-            "(crontab -l 2>/dev/null | grep -v 'synchro-sync.sh'; echo '*/${settings.syncInterval} * * * * /usr/local/bin/synchro-sync.sh') | crontab - && echo 'Cron job installed: sync every ${settings.syncInterval} minutes'"
-          ],
-          "user": "root"
-        }
-      },
-      "if (${settings.syncMode} == 'onetime')": {
-        "cmd [${targetNodes.nodeGroup}]": {
-          "commands": [
-            "crontab -l 2>/dev/null | grep -v 'synchro-sync.sh' | crontab - || true && echo 'One-time sync mode: cron job removed'"
-          ],
-          "user": "root"
-        }
-      }
+      "script": [
+        "var syncMode = '${settings.syncMode}';",
+        "var syncInterval = '${settings.syncInterval}';",
+        "var nodeGroup = '${targetNodes.nodeGroup}';",
+        "",
+        "var cmd = '';",
+        "if (syncMode == 'automatic') {",
+        "  cmd = '(crontab -l 2>/dev/null | grep -v \\'synchro-sync.sh\\'; echo \\'*/' + syncInterval + ' * * * * /usr/local/bin/synchro-sync.sh\\') | crontab - && echo \\'Cron job installed: sync every ' + syncInterval + ' minutes\\'';",
+        "} else {",
+        "  cmd = 'crontab -l 2>/dev/null | grep -v \\'synchro-sync.sh\\' | crontab - || true && echo \\'One-time sync mode: cron job removed\\'';",
+        "}",
+        "",
+        "return jelastic.env.control.ExecCmdByGroup(",
+        "  '${env.envName}',",
+        "  session,",
+        "  nodeGroup,",
+        "  toJSON([{ command: cmd }]),",
+        "  true,",
+        "  false,",
+        "  'root'",
+        ");"
+      ]
     },
     "testSync": {
       "cmd [${targetNodes.nodeGroup}]": {

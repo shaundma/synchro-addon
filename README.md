@@ -2,7 +2,7 @@
 
 A Jelastic JPS add-on that synchronizes files between nodes using rsync over SSH.
 
-**Current Version:** v1.9.0
+**Current Version:** v1.9.1
 
 **Repository:** https://github.com/shaundma/synchro-addon
 
@@ -133,6 +133,11 @@ ssh -i /root/.ssh/id_synchro root@REMOTE_IP cat /path/to/remote/folder/test.txt
 ```
 
 ## Version History
+
+### v1.9.1 (2025-11-13)
+- Fixed Configure button cron job installation
+- Changed setupCronJob from conditional to script-based approach
+- Now correctly installs/removes cron job when switching between modes
 
 ### v1.9.0 (2025-11-13)
 - Added Local owner field (optional)
@@ -295,7 +300,7 @@ git push origin master
 ### Cache-Busting
 Use timestamp in URL for testing:
 ```
-https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps?t=20251113190
+https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps?t=20251113191
 ```
 
 ## Use Cases
