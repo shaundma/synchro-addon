@@ -2,15 +2,12 @@
   "jpsType": "update",
   "jpsVersion": "1.8",
   "id": "synchro-addon",
-  "name": "Synchro Add-on v1.3.2",
-  "version": "1.3.2",
+  "name": "Synchro Add-on v1.3.3",
+  "version": "1.3.3",
   "logo": "images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
   "description": "Synchronize files and folders between nodes using rsync",
   "baseUrl": "https://raw.githubusercontent.com/shaundma/synchro-addon/master/",
-  "targetNodes": {
-    "nodeType": ["storage", "apache", "apache2", "nodejs", "apache-ruby", "apache-python", "nginxruby", "nginxphp", "nginxphp-dockerized", "tomcat6", "tomcat7", "tomcat8", "tomcat85", "tomcat9", "tomcat", "tomee", "tomee-dockerized", "litespeedphp", "llsmp", "lemp", "jetty"]
-  },
   "settings": {
     "fields": [
       {
@@ -54,12 +51,6 @@
         "caption": "Remote Node IP Address",
         "required": true,
         "placeholder": "e.g. 192.168.1.10"
-      },
-      {
-        "type": "displayfield",
-        "name": "targetHeader",
-        "markup": "Target",
-        "hideLabel": true
       }
     ]
   },
