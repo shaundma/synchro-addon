@@ -2,7 +2,7 @@
 
 A Jelastic JPS add-on that synchronizes files between nodes using rsync over SSH.
 
-**Current Version:** v1.8.0
+**Current Version:** v1.8.1
 
 **Repository:** https://github.com/shaundma/synchro-addon
 
@@ -33,8 +33,8 @@ https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps
    - **Folder on local** - Path on the node where add-on is installed
    - **Folder on remote** - Path on the remote node
    - **Sync Direction** - FROM local TO remote, or FROM remote TO local
-   - **Remote Node IP Address** - IP address of remote node
    - **Remote User** - Username on remote node (default: root)
+   - **Remote Node IP Address** - IP address of remote node
    - **Sync Mode** - One-time sync only (default) or automatic recurring
    - **Every (minutes)** - Minutes between syncs (for automatic mode)
 4. Select **Environment** and **Nodes** (the local node where add-on will be installed)
@@ -131,6 +131,10 @@ ssh -i /root/.ssh/id_synchro root@REMOTE_IP cat /path/to/remote/folder/test.txt
 ```
 
 ## Version History
+
+### v1.8.1 (2025-11-13)
+- Reordered form fields: Remote User now appears above Remote Node IP Address
+- Updated README to reflect new field order
 
 ### v1.8.0 (2025-11-13)
 - Added Remote User field with default "root"
@@ -279,7 +283,7 @@ git push origin master
 ### Cache-Busting
 Use timestamp in URL for testing:
 ```
-https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps?t=20251113180
+https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps?t=20251113181
 ```
 
 ## Use Cases
