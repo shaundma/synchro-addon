@@ -2,8 +2,8 @@
   "jpsType": "update",
   "jpsVersion": "1.8",
   "id": "synchro-addon",
-  "name": "Synchro Add-on v1.6.0",
-  "version": "1.6.0",
+  "name": "Synchro Add-on v1.6.1",
+  "version": "1.6.1",
   "logo": "images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
   "description": "Synchronize files and folders between nodes using rsync",
@@ -46,13 +46,13 @@
         "default": "automatic",
         "values": {
           "onetime": "One-time sync only",
-          "automatic": "Automatic recurring sync"
+          "automatic": "Automatic recurring sync (set interval below)"
         }
       },
       {
         "type": "spinner",
         "name": "syncInterval",
-        "caption": "Sync Interval (minutes)",
+        "caption": "Interval (minutes)",
         "min": 1,
         "max": 2880,
         "default": 15,
