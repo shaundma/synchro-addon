@@ -2,7 +2,7 @@
 
 A Jelastic JPS add-on that synchronizes files between nodes using rsync over SSH.
 
-**Current Version:** v1.7.2
+**Current Version:** v1.8.0
 
 **Repository:** https://github.com/shaundma/synchro-addon
 
@@ -34,6 +34,7 @@ https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps
    - **Folder on remote** - Path on the remote node
    - **Sync Direction** - FROM local TO remote, or FROM remote TO local
    - **Remote Node IP Address** - IP address of remote node
+   - **Remote User** - Username on remote node (default: root)
    - **Sync Mode** - One-time sync only (default) or automatic recurring
    - **Every (minutes)** - Minutes between syncs (for automatic mode)
 4. Select **Environment** and **Nodes** (the local node where add-on will be installed)
@@ -51,7 +52,7 @@ For private network IPs (RFC 1918: 10.x.x.x, 172.16-31.x.x, 192.168.x.x):
 
 For public IP addresses or external servers:
 - Installation provides the public key
-- Manually add the key to `/root/.ssh/authorized_keys` on remote server
+- Manually add the key to `~/.ssh/authorized_keys` for the specified remote user
 - Ensure port 22 is accessible
 - Use "Sync Now" button to test connection
 
@@ -130,6 +131,13 @@ ssh -i /root/.ssh/id_synchro root@REMOTE_IP cat /path/to/remote/folder/test.txt
 ```
 
 ## Version History
+
+### v1.8.0 (2025-11-13)
+- Added Remote User field with default "root"
+- Support for non-root SSH connections
+- Updated sync script to use configurable remote user
+- Updated success messages to show remote user
+- Updated SSH key removal to work with any user
 
 ### v1.7.2 (2025-11-13)
 - Updated README with current version and complete version history
@@ -271,7 +279,7 @@ git push origin master
 ### Cache-Busting
 Use timestamp in URL for testing:
 ```
-https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps?t=20251113028
+https://raw.githubusercontent.com/shaundma/synchro-addon/master/manifest.jps?t=20251113180
 ```
 
 ## Use Cases

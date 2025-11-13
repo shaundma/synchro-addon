@@ -2,8 +2,8 @@
   "jpsType": "update",
   "jpsVersion": "1.8",
   "id": "synchro-addon",
-  "name": "Synchro Add-on v1.7.2",
-  "version": "1.7.2",
+  "name": "Synchro Add-on v1.8.0",
+  "version": "1.8.0",
   "logo": "images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
   "description": "Synchronize files and folders between nodes using rsync",
@@ -45,6 +45,14 @@
         "caption": "Remote Node IP Address",
         "required": true,
         "placeholder": "e.g. 192.168.1.10"
+      },
+      {
+        "type": "string",
+        "name": "remoteUser",
+        "caption": "Remote User",
+        "required": true,
+        "default": "root",
+        "placeholder": "e.g. root"
       },
       {
         "type": "radio-fieldset",
@@ -238,6 +246,7 @@
           "sed -i \"s|__REMOTE_SYNC_FOLDER__|${settings.remoteSyncFolder}|g\" /usr/local/bin/synchro-sync.sh",
           "sed -i \"s|__SYNC_DIRECTION__|${settings.syncDirection}|g\" /usr/local/bin/synchro-sync.sh",
           "sed -i \"s|__REMOTE_IP__|${settings.remoteIP}|g\" /usr/local/bin/synchro-sync.sh",
+          "sed -i \"s|__REMOTE_USER__|${settings.remoteUser}|g\" /usr/local/bin/synchro-sync.sh",
           "chmod +x /usr/local/bin/synchro-sync.sh"
         ],
         "user": "root"
@@ -272,7 +281,7 @@
     "removePublicKeyFromRemote": {
       "cmd [${targetNodes.nodeGroup}]": {
         "commands": [
-          "ssh -i /root/.ssh/id_synchro -o StrictHostKeyChecking=no root@${settings.remoteIP} \"sed -i '/synchro-addon/d' /root/.ssh/authorized_keys\" 2>/dev/null || true"
+          "ssh -i /root/.ssh/id_synchro -o StrictHostKeyChecking=no ${settings.remoteUser}@${settings.remoteIP} \"sed -i '/synchro-addon/d' ~/.ssh/authorized_keys\" 2>/dev/null || true"
         ],
         "user": "root"
       }
@@ -312,7 +321,8 @@
           "message += '- Folder on remote: ${settings.remoteSyncFolder}\\n';",
           "message += '- Direction: ' + directionText + '\\n';",
           "message += '- Sync mode: ' + modeText + '\\n';",
-          "message += '- Remote IP: ${settings.remoteIP}';",
+          "message += '- Remote IP: ${settings.remoteIP}\\n';",
+          "message += '- Remote User: ${settings.remoteUser}';",
           "",
           "return { result: 0, message: message };"
         ],
@@ -349,6 +359,7 @@
         "var syncMode = '${settings.syncMode}';",
         "var syncInterval = '${settings.syncInterval}';",
         "var remoteIP = '${settings.remoteIP}';",
+        "var remoteUser = '${settings.remoteUser}';",
         "",
         "var directionText = syncDirection == 'from' ? 'FROM local TO remote' : 'FROM remote TO local';",
         "var modeText = syncMode == 'onetime' ? 'One-time sync only' : 'Automatic every ' + syncInterval + ' minutes';",
@@ -361,12 +372,14 @@
         "message += '- Direction: ' + directionText + '\\n';",
         "message += '- Sync mode: ' + modeText + '\\n';",
         "message += '- Remote IP: ' + remoteIP + '\\n';",
+        "message += '- Remote User: ' + remoteUser + '\\n';",
         "",
         "if (!isInternal) {",
         "  message += '\\n--- PUBLIC IP DETECTED ---\\n';",
         "  message += 'Manual SSH key installation required:\\n\\n';",
         "  message += '1. Ensure port 22 is accessible on ' + remoteIP + '\\n';",
-        "  message += '2. Add this public key to /root/.ssh/authorized_keys on the remote node:\\n\\n';",
+        "  var keyPath = remoteUser == 'root' ? '/root/.ssh/authorized_keys' : '~/.ssh/authorized_keys (for user ' + remoteUser + ')';",
+        "  message += '2. Add this public key to ' + keyPath + ' on the remote node:\\n\\n';",
         "  message += publicKey + '\\n';",
         "}",
         "",
