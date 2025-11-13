@@ -24,10 +24,10 @@ log "Starting sync: Direction=$SYNC_DIRECTION, Local=$SYNC_FOLDER, Remote=$REMOT
 # Perform sync based on direction
 if [ "$SYNC_DIRECTION" = "from" ]; then
   # Sync FROM local TO remote
-  rsync -avz --delete -e "ssh -i $SSH_KEY -o StrictHostKeyChecking=no" "$SYNC_FOLDER/" "$REMOTE_USER@$REMOTE_IP:$REMOTE_SYNC_FOLDER/" >> $LOG_FILE 2>&1
+  rsync -avz --delete --no-owner --no-group -e "ssh -i $SSH_KEY -o StrictHostKeyChecking=no" "$SYNC_FOLDER/" "$REMOTE_USER@$REMOTE_IP:$REMOTE_SYNC_FOLDER/" >> $LOG_FILE 2>&1
 else
   # Sync TO local FROM remote
-  rsync -avz --delete -e "ssh -i $SSH_KEY -o StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_IP:$REMOTE_SYNC_FOLDER/" "$SYNC_FOLDER/" >> $LOG_FILE 2>&1
+  rsync -avz --delete --no-owner --no-group -e "ssh -i $SSH_KEY -o StrictHostKeyChecking=no" "$REMOTE_USER@$REMOTE_IP:$REMOTE_SYNC_FOLDER/" "$SYNC_FOLDER/" >> $LOG_FILE 2>&1
 fi
 
 SYNC_RESULT=$?
