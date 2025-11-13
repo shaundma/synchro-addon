@@ -28,7 +28,7 @@
         "default": "from",
         "values": {
           "from": "FROM target TO remote",
-          "to": "TO target FROM remote"
+          "to": "FROM remote TO target"
         }
       },
       {
@@ -207,5 +207,5 @@
       }
     }
   },
-  "success": "Synchro Add-on installed successfully!<br><br>Configuration:<br>- Installed on: ${targetNodes.nodeGroup} nodes<br>- Folder: ${settings.syncFolder}<br>- Direction: ${settings.syncDirection} (${settings.syncDirection == 'from' ? 'FROM target TO remote' : 'TO target FROM remote'})<br>- Interval: Every ${settings.syncInterval} minutes<br>- Remote IP: ${settings.remoteIP}<br><br>Check sync log: /var/log/synchro-addon.log"
+  "success": "Synchro Add-on installed successfully!<br><br>Configuration:<br>- Installed on: ${targetNodes.nodeGroup} nodes<br>- Folder: ${settings.syncFolder}<br>- Direction: ${settings.syncDirection} (${settings.syncDirection == 'from' ? 'FROM target TO remote' : 'FROM remote TO target'})<br>- Interval: Every ${settings.syncInterval} minutes<br>- Remote IP: ${settings.remoteIP}<br><br>Check sync log: /var/log/synchro-addon.log"
 }
