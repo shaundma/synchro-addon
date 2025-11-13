@@ -2,8 +2,8 @@
   "jpsType": "update",
   "jpsVersion": "1.8",
   "id": "synchro-addon",
-  "name": "Synchro Add-on v1.3.2",
-  "version": "1.3.2",
+  "name": "Synchro Add-on v1.3.1",
+  "version": "1.3.1",
   "logo": "images/icon.png",
   "homepage": "https://github.com/shaundma/synchro-addon",
   "description": "Synchronize files and folders between nodes using rsync",
@@ -14,45 +14,20 @@
   "settings": {
     "fields": [
       {
-        "type": "displayfield",
-        "name": "targetInfo",
-        "markup": "<b>Target Configuration</b> (select environment and nodes below)",
-        "hideLabel": true
-      },
-      {
         "type": "string",
         "name": "syncFolder",
-        "caption": "Folder path on target",
+        "caption": "Folder on target",
         "required": true,
         "default": "/var/www/webroot/ROOT",
         "placeholder": "/path/to/folder"
-      },
-      {
-        "type": "displayfield",
-        "name": "remoteInfo",
-        "markup": "<br><b>Remote Configuration</b>",
-        "hideLabel": true
       },
       {
         "type": "string",
         "name": "remoteSyncFolder",
-        "caption": "Folder path on remote",
+        "caption": "Folder on remote",
         "required": true,
         "default": "/var/www/webroot/ROOT",
         "placeholder": "/path/to/folder"
-      },
-      {
-        "type": "string",
-        "name": "remoteIP",
-        "caption": "Remote Node IP Address",
-        "required": true,
-        "placeholder": "e.g. 192.168.1.10"
-      },
-      {
-        "type": "displayfield",
-        "name": "syncInfo",
-        "markup": "<br><b>Sync Settings</b>",
-        "hideLabel": true
       },
       {
         "type": "radio-fieldset",
@@ -72,6 +47,13 @@
         "max": 2880,
         "default": 15,
         "required": true
+      },
+      {
+        "type": "string",
+        "name": "remoteIP",
+        "caption": "Remote Node IP Address",
+        "required": true,
+        "placeholder": "e.g. 192.168.1.10"
       }
     ]
   },
